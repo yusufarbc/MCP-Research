@@ -4,6 +4,9 @@
 
 **Model Context Protocol (MCP)**, Anthropic şirketi tarafından açık kaynak olarak geliştirilmiş bir protokoldür ve büyük dil modellerini (Large Language Models - *LLM*) harici veri kaynakları ve araçlarla entegre etmeyi amaçlar. Bir bakıma, yapay zeka uygulamaları için **USB-C standardı** gibi çalışarak LLM tabanlı uygulamaların dış sistemlerle bağlanması için standart bir yol sağlar. Bu araştırmanın amacı, MCP protokolünün teknik mimarisi ile ağ içi işleyiş modelini inceleyerek yazılım geliştirme süreçlerindeki kullanım biçimlerini ortaya koymak ve protokolün siber güvenlik bağlamında oluşturabileceği potansiyel riskleri değerlendirmektir. Bu doğrultuda, MCP’nin temel hedefleri ve kullanım alanları, mimari yapısı ve veri iletim mekanizması, hangi katmanda çalıştığı ve bunun sağladığı avantajlar ile protokolün açık kaynak olmasının güvenliğe etkileri ele alınacaktır. Ayrıca MCP’ye yönelik olası saldırı türleri (örn. Ortadaki Adam, Replay, Enjeksiyon) incelenerek Anthropic’in (Antopic) uyguladığı güvenlik önlemlerinin yeterliliği değerlendirilecek ve **MCP’nin güvenli bir şekilde uygulanabilmesi için öneriler** sunulacaktır.
 
+<img width="1207" height="799" alt="resim" src="https://github.com/user-attachments/assets/bdf1510b-66f6-427b-9562-f8653e73d66e" />
+
+
 ## MCP Protokolünün Amacı ve Kullanım Alanları
 
 MCP protokolünün temel amacı, LLM tabanlı yapay zeka uygulamaları ile harici araçlar, veri kaynakları ve hizmetler arasında **standart bir bağlamsal iletişim** sağlamaktır. Bu sayede bir yapay zeka modeli, kısıtlı kendi bilgi havuzunun ötesine geçerek güncel verilere erişebilir, çeşitli eylemleri tetikleyebilir veya harici uygulamalardan sonuçlar alabilir. Örneğin GitHub Copilot gibi bir kod yardımı aracı, MCP üzerinden GitHub’ın kendi hizmetleriyle veya üçüncü parti araçlarla entegre olarak daha ileri işlemler yapabilmektedir. Anthropic’in Claude modeli gibi bir LLM de MCP sayesinde harici “araçlar” kullanarak ide ortamında dosya sistemine erişmek veya bir hata izleme (sentry) platformundan veri çekmek gibi eylemlere girişebilir.
@@ -18,6 +21,13 @@ MCP protokolü, geniş bir yelpazedeki kullanım senaryolarını mümkün kılar
 Yukarıdaki örnekler MCP’nin **genel amaçlı bir entegrasyon altyapısı** olarak ne denli esnek kullanılabildiğini göstermektedir. Son kullanıcı açısından bu, yapay zekâ destekli uygulamaların kendi verilerine erişip gerekirse kullanıcı adına eyleme geçebilen daha yetenekli asistanlar haline gelmesi demektir. Geliştiriciler için ise MCP, bir yapay zekâ uygulamasına entegrasyon noktaları eklerken zaman kazandıran ve karmaşıklığı azaltan standart bir arayüz sunmaktadır.
 
 ## MCP'nin Mimari Yapısı ve Veri İletim Mekanizması
+
+<img width="960" height="540" alt="resim" src="https://github.com/user-attachments/assets/ac7686e8-9c5d-4a30-be7c-9fa1f7328325" />
+
+<img width="836" height="512" alt="resim" src="https://github.com/user-attachments/assets/d0cdaa6e-aff0-4d03-ab74-bbd6107c5ff1" />
+
+<img width="840" height="328" alt="resim" src="https://github.com/user-attachments/assets/ba600697-942e-426f-ad1c-839875ef9772" />
+
 
 *Şekil 1: MCP istemci ve sunucularının LLM ile etkileşimini gösteren örnek bir akış diagramı. Kullanıcı isteği, istemci tarafından LLM'ye iletilir; LLM uygun aracı seçerek sunucuya çağrı yapar ve sonuç yine LLM üzerinden kullanıcıya döner.*
 
