@@ -124,7 +124,7 @@ Teknik literatüre katkı anlamında, MCP protokolünün mimarisi ve işlevselli
 
 MCP protokolü doğru uygulandığında yapay zekâ dünyasında verimlilik ve yetenek artışı sağlayan bir araçtır; ancak güvenlik prensipleri ikinci plana atılmadan, “önce güvenlik” yaklaşımıyla ele alınmalıdır. Bu denge sağlandığında, MCP gibi protokoller inovasyon ile emniyeti bir arada götürebilecek, hem geliştiriciler hem de kullanıcılar için büyük kazanımlar sunacaktır.
 
-## Kaynaklar (seçme)
+## Kaynaklar
 
 * Anthropic — Model Context Protocol (MCP) GitHub projesi ve resmi belgeler
 * GitHub Docs — Model Context Protocol (MCP) hakkında dokümantasyon
