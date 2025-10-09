@@ -11,6 +11,8 @@
 
 MCP protokolünün temel amacı, LLM tabanlı yapay zeka uygulamaları ile harici araçlar, veri kaynakları ve hizmetler arasında **standart bir bağlamsal iletişim** sağlamaktır. Bu sayede bir yapay zeka modeli, kısıtlı kendi bilgi havuzunun ötesine geçerek güncel verilere erişebilir, çeşitli eylemleri tetikleyebilir veya harici uygulamalardan sonuçlar alabilir. Örneğin GitHub Copilot gibi bir kod yardımı aracı, MCP üzerinden GitHub’ın kendi hizmetleriyle veya üçüncü parti araçlarla entegre olarak daha ileri işlemler yapabilmektedir. Anthropic’in Claude modeli gibi bir LLM de MCP sayesinde harici “araçlar” kullanarak ide ortamında dosya sistemine erişmek veya bir hata izleme (sentry) platformundan veri çekmek gibi eylemlere girişebilir.
 
+<img width="960" height="540" alt="resim" src="https://github.com/user-attachments/assets/ac7686e8-9c5d-4a30-be7c-9fa1f7328325" />
+
 MCP protokolü, geniş bir yelpazedeki kullanım senaryolarını mümkün kılarak yapay zekâ uygulamalarının yeteneklerini artırır. Aşağıda MCP’nin sağlayabildiği bazı olanaklar listelenmiştir:
 
 * **Kişisel Asistan Entegrasyonu:** Yapay zekâ “agent”ları kullanıcıların Google Takvimi veya Notion hesaplarına bağlanarak daha kişiselleştirilmiş asistanlar gibi davranabilir. Örneğin, takvimden randevuları okuma veya yeni notlar oluşturma gibi işlemleri gerçekleştirebilir.
@@ -22,14 +24,11 @@ Yukarıdaki örnekler MCP’nin **genel amaçlı bir entegrasyon altyapısı** o
 
 ## MCP'nin Mimari Yapısı ve Veri İletim Mekanizması
 
-<img width="960" height="540" alt="resim" src="https://github.com/user-attachments/assets/ac7686e8-9c5d-4a30-be7c-9fa1f7328325" />
-
-<img width="836" height="512" alt="resim" src="https://github.com/user-attachments/assets/d0cdaa6e-aff0-4d03-ab74-bbd6107c5ff1" />
 
 <img width="840" height="328" alt="resim" src="https://github.com/user-attachments/assets/ba600697-942e-426f-ad1c-839875ef9772" />
 
 
-*Şekil 1: MCP istemci ve sunucularının LLM ile etkileşimini gösteren örnek bir akış diagramı. Kullanıcı isteği, istemci tarafından LLM'ye iletilir; LLM uygun aracı seçerek sunucuya çağrı yapar ve sonuç yine LLM üzerinden kullanıcıya döner.*
+MCP istemci ve sunucularının LLM ile etkileşimini gösteren örnek bir akış diagramı. Kullanıcı isteği, istemci tarafından LLM'ye iletilir; LLM uygun aracı seçerek sunucuya çağrı yapar ve sonuç yine LLM üzerinden kullanıcıya döner.*
 
 MCP protokolü, istemci-sunucu modeline dayalı **iki katmanlı bir mimariye** sahiptir. Katmanlardan ilki **veri katmanı** (*data layer*) olup istemci ile sunucu arasındaki mesajların yapısını ve anlamını tanımlayan bir JSON-RPC 2.0 tabanlı protokoldür. Bu katmanda bağlantının başlatılması, sürdürülmesi ve sonlandırılması gibi yaşam döngüsü yönetimi; sunucunun sağlayabileceği *araçlar* (tools) ve *kaynaklar* (resources) gibi işlevler; istemcinin LLM'den çıktı üretmesini talep etme veya kullanıcı girdisi isteme gibi kabiliyetler ve uyarı/iletişim amaçlı *bildirimler* yer alır. İkinci katman olan **taşıma katmanı** (*transport layer*), veri alışverişinin hangi iletişim kanalları üzerinden ve nasıl yapılacağını tanımlar; bağlantı kurulumu, mesaj çerçeveleri ve taraflar arasında kimlik doğrulama bu katmanda ele alınır. MCP’nin tasarımında mevcut iki taşıma yöntemi şunlardır:
 
@@ -37,6 +36,8 @@ MCP protokolü, istemci-sunucu modeline dayalı **iki katmanlı bir mimariye** s
 * **Akış Destekli HTTP Taşıması:** İstemci ile sunucu arasında HTTP üzerinden iletişim kurulmasını sağlar. İstemci, sunucuya JSON tabanlı isteklerini HTTP POST ile gönderirken; sunucu gerektiğinde **Server-Sent Events (SSE)** kullanarak istemciye akan (*streaming*) yanıtlar iletebilir. Bu yöntem uzaktaki (bulut veya internet üzerindeki) MCP sunucularına bağlanmak için kullanılır ve standart HTTP kimlik doğrulama mekanizmalarını destekler (taşıyıcı jetonlar, API anahtarları veya özel başlıklar gibi). Uzaktan iletişimde verinin gizliliği ve bütünlüğü için MCP üzerinden **HTTPS (TLS şifrelemesi)** kullanılması önerilmektedir.
 
 Yukarıdaki mimari sayesinde MCP, birden fazla sunucuya aynı anda bağlanabilen esnek bir istemci-çoklu sunucu topolojisi oluşturur. Bu yapıda **MCP İstemcisi**, LLM barındıran uygulamanın içinde çalışarak her bir MCP sunucusuyla birebir bağlantı kuran bileşendir. **MCP Sunucusu** ise harici bağlam bilgisini sağlayan bağımsız bir süreçtir; dosya sistemi, veritabanı, harici API gibi kaynaklara erişebilir ve bunları istemciye bir “araç” arayüzüyle sunar. Örneğin Visual Studio Code editörü bir MCP **host** uygulaması olarak düşünülebilir; VS Code, Sentry hata izleme sistemi için bir MCP sunucusuna bağlandığında (uzak bir sunucu), aynı anda yerel dosya sistemi erişimi sunan başka bir MCP sunucusuna da bağlanabilir. Bu durumda VS Code içinde her sunucu bağlantısı için ayrı bir MCP istemci nesnesi çalışır ve her biri ilgili sunucusundan veri çeker.
+
+<img width="836" height="512" alt="resim" src="https://github.com/user-attachments/assets/d0cdaa6e-aff0-4d03-ab74-bbd6107c5ff1" />
 
 **Veri iletim mekanizması**, istemci, sunucu ve LLM arasındaki etkileşimle gerçekleşir. Bu akışı adım adım incelemek gerekirse:
 
