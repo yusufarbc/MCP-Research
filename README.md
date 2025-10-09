@@ -1,6 +1,3 @@
-# MCP-Research
- Model Context Protocol (MCP) hakkında yapılan araştırma çalışmasıdır
-
 # Antopic Tarafından Geliştirilen Açık Kaynaklı MCP Protokolünün Mimari Yapısı, İşlevselliği ve Güvenlik Açısından Değerlendirilmesi
 
 ## Giriş
