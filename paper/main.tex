@@ -1,0 +1,44 @@
+﻿% !TeX program = latexmk
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{geometry}
+\geometry{margin=1in}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{csquotes}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{microtype}
+\usepackage[backend=biber,style=numeric,sorting=none]{biblatex}
+\addbibresource{bibliography/references.bib}
+
+\title{Model Context Protocol (MCP) Security:\\ Threats, Defenses, and Deployment Guidance}
+\author{Yusuf Ar\"{a}b\c{c}\i{} et al.}
+\date{\\Draft: \today}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+We study the security landscape of the Model Context Protocol (MCP), outlining threat models, attack classes, and practical defenses for safe deployments.\\
+This is a working draft prepared with \LaTeX{} and VS Code.
+\end{abstract}
+
+\section{Introduction}
+\input{sections/01-introduction}
+\section{Background}
+\input{sections/02-background}
+\section{Threat Model}
+\input{sections/03-threat-model}
+\section{Vulnerabilities and Attacks}
+\input{sections/04-attacks}
+\section{Defenses and Best Practices}
+\input{sections/05-defenses}
+\section{Related Work}
+\input{sections/06-related}
+\section{Conclusion}
+\input{sections/07-conclusion}
+
+\printbibliography
+\end{document}
