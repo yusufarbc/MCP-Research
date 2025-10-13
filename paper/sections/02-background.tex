@@ -1,1 +1,31 @@
-﻿% Background on MCP architecture, components, transport, and trust boundaries.
+MCP abstracts tool and data access for LLM-enabled applications into a common protocol with defined roles: an MCP client (typically the LLM application), one or more MCP servers (brokers of tools and resources), and external tools/services. The protocol is often carried over JSON-RPC-like transports.
+
+Key elements
+- Client: issues requests, manages session context, and enforces UI/UX policies.
+- Server: exposes tools and data sources through a unified interface and mediates execution.
+- Tools/Services: concrete actions (e.g., filesystem, HTTP APIs, databases) with diverse risk profiles.
+
+Trust boundary: clients should not implicitly trust servers or tools; servers should constrain tools; tools must be sandboxed or limited by design.
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[
+  comp/.style={rectangle,draw,rounded corners,align=center,minimum width=3.2cm,minimum height=1cm},
+  arr/.style={-Latex}
+]
+\node[comp, fill=blue!5] (client) {MCP Client\\(LLM App)};
+\node[comp, fill=green!5, right=3.2cm of client] (server) {MCP Server};
+\node[comp, fill=orange!10, above right=0.8cm and 3.2cm of server] (tool1) {Tool A};
+\node[comp, fill=orange!10, below right=0.8cm and 3.2cm of server] (tool2) {Tool B};
+\draw[arr] (client) -- node[above]{Transport} (server);
+\draw[arr] (server) -- (tool1);
+\draw[arr] (server) -- (tool2);
+\end{tikzpicture}
+\caption{Simplified MCP topology and trust boundary.}
+\label{fig:mcp-arch}
+\end{figure}
+
+Operational background
+- Deployments vary from local developer environments (high privileges, low isolation) to cloud multi-tenant setups (stricter isolation and auditing).
+- Misconfigurations (open servers, weak authn/z) significantly increase exposure \cite{MDPIElectronics3267}.
+

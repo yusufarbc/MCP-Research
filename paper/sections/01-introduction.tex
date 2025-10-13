@@ -1,1 +1,11 @@
-﻿% Intro\nThis paper investigates MCP security, contributions: (i) structured threat model, (ii) taxonomy of attacks, (iii) actionable defenses and deployment guidance.
+MCP aims to standardize how Large Language Model (LLM) applications interact with external tools and data sources. While this brings significant capability and interoperability benefits, it also introduces new trust boundaries and attack surfaces that differ from traditional web APIs and plugin ecosystems. This paper provides a consolidated view of MCP security risks and practical hardening guidance.
+
+Contributions
+- A structured threat model for MCP deployments delineating assets, adversaries, assumptions, and security goals.
+- A taxonomy of attack classes including tool/prompt poisoning, plan injection, RCE and network pivoting via SSRF/DNS rebinding, and supply-chain risks, illustrated with recent cases \cite{arXiv250323278,arXiv250907595,arXiv250812566,MDPIElectronics3267}.
+- A set of actionable defenses and deployment recommendations: isolation and sandboxing, least-privilege capabilities, rigorous input validation and output constraints, observability and rate limiting, and protocol-level enhancements.
+
+Scope and Non-Goals
+- We focus on the protocol usage and typical stacks (client–server–transport), not model internals or training-time data governance.
+- Examples target real-world operator needs (DevOps/SecOps) with emphasis on misconfiguration risks and defense-in-depth.
+

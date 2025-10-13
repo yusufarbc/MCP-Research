@@ -1,47 +1,34 @@
-# MCP Protokolü Güvenliği — Araştırma Deposu (TR/EN)
+# MCP Protocol Security — LaTeX Paper Workspace
 
-Bu depo, Model Context Protocol (MCP) güvenliği üzerine akademik bildiri çalışması için derlenen makaleler, notlar ve görselleri içerir. Amaç: tehdit modeli, zafiyet sınıfları ve savunma stratejilerini derleyip değerlendirerek uygulanabilir rehber oluşturmak.
+This repository is prepared to write an academic paper on Model Context Protocol (MCP) security. It contains a LaTeX project, a curated citations list, and VS Code settings for a smooth authoring experience.
 
-Hızlı Bağlantılar
-- EN akademik PDF’ler: `docs/en/academic/`
-- EN kaynaklar (özet/protokol): `docs/en/resources/`
-- TR notlar: `docs/tr/notes/`
-- Makale taslağı: `paper/outline.md`
-- Şekiller: `paper/figures/`
-- Atıflar listesi: `CITATIONS.md`
-- Link kontrol (CI): `.github/workflows/link-check.yml`
+Quick Start (Windows)
+- Install a TeX distribution: MiKTeX or TeX Live.
+- Install VS Code extension: “LaTeX Workshop”.
+- Build the paper:
+  - VS Code → Command Palette → LaTeX Workshop: “Recipes” → “latexmk (pdf)”, or
+  - Terminal: `cd paper && latexmk -pdf -interaction=nonstopmode -synctex=1 main.tex`
 
-Depo Yapısı
-- `docs/en/academic`: arXiv/MDPI vb. makalelerin PDF kopyaları (offline referans)
-- `docs/en/resources`: literatür protokolü, özet derlemeleri vb.
-- `docs/tr/notes`: Türkçe notlar ve bulgular (ASCII dosya adları)
-- `paper/outline.md`: makale bölümleri ve yazım planı
-- `paper/figures`: şekiller/diagramlar (boş ise `.gitkeep`)
-- `CITATIONS.md`: tekil kaynak envanteri (durum, dosya yolu, erişim tarihi)
+Project Layout
+- `paper/main.tex` — main paper file (biblatex+biber)
+- `paper/sections/` — per-section content files
+- `paper/bibliography/references.bib` — BibTeX database (seeded)
+- `paper/figures/` — figures and diagrams
+- `CITATIONS.md` — human-readable citations list (links and access dates)
+- `.vscode/` — settings and suggestions (LaTeX Workshop)
 
-Çalışma Akışı
-- Yeni yayın ekleme
-  - arXiv: dosya adı `docs/en/academic/<arxiv-id>v<rev>.pdf` (örn. `2509.07595v1.pdf`).
-  - Yayıncı/DOI: kısa ve anlamlı slug (örn. `electronics-14-03267-v2.pdf`).
-  - Aşırı uzun adlardan kaçının (<120 karakter). Windows uzun yol hatalarını önlemek için kısa tutun.
-- Atıf ekleme/güncelleme
-  - `CITATIONS.md` içine başlık, durum (Present/Web only), yerel yol ve erişim tarihi ekleyin.
-- Not ekleme
-  - `docs/tr/notes/` altında Markdown dosyaları kullanın; dosya adları ASCII olsun (örn. `google-arastirmasi.md`).
+Citations
+- Use `paper/bibliography/references.bib` for citations and `biblatex` (biber) in LaTeX.
+- Keep `CITATIONS.md` as a quick, human-readable list with URLs and dates.
 
-İsimlendirme ve Uyumluluk
-- PDF’ler ikili olarak işaretlidir (`.gitattributes`).
-- TR dosya adlarında ASCII kullanılır; içerikte Türkçe karakterler serbesttir.
-- Gerekirse `git config core.longpaths true` ile uzun yol desteği açılabilir.
+Continuous Integration
+- Markdown link checking: `.github/workflows/link-check.yml`.
+- PDF build (GitHub Actions): `.github/workflows/latex-build.yml` publishes `paper/main.pdf` as an artifact on push/PR.
 
-Kalite Kontrolleri
-- Link kontrolü (CI) push/PR üzerinde çalışır ve Markdown’daki kırık linkleri raporlar.
-- Büyük dosyalar yalnızca gerekli olduğunda eklenmelidir (PDF’ler için geçerli).
+Contributing
+- Prefer small, focused changes. Keep section files tidy and cite sources.
+- Do not commit LaTeX build artifacts; `.gitignore` excludes common outputs.
 
-Katkı
-- Küçük ve odaklı PR’lar tercih edilir.
-- Dosya yapısı ve adlandırma kurallarına uyun; atıf bilgilerini `CITATIONS.md` ile senkron tutun.
-
-Lisans/Not
-- Bu depo yalnızca araştırma ve referans amaçlıdır. İçerdiği PDF’ler, ilgili yayıncı/arXiv lisansları kapsamında değerlendirilmelidir.
+License/Note
+- Content is for research and academic purposes. Respect licenses of referenced materials.
 

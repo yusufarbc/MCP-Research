@@ -1,1 +1,17 @@
-﻿% Defenses: isolation/sandbox, least privilege, validation, policy, observability, rate limiting; protocol-level proposals.
+Defense-in-Depth
+- Isolation and Sandboxing: run tools with OS-level isolation (containers, namespaces), drop privileges, restrict filesystem and network egress by default.
+- Least Privilege: explicit capability sets; deny-by-default policies; per-session scoped credentials.
+- Validation and Constraints: sanitize inputs/outputs, whitelist commands/APIs, apply content filters to mitigate prompt/tool poisoning.
+- Observability: structured logs, tracing (e.g., OpenTelemetry), anomaly detection; redact secrets.
+- Rate Limiting and Budgets: cap requests, time, and cost per session/user to preserve availability.
+
+Protocol-Level Enhancements (Options)
+- Capability Descriptors: machine-readable statements of tool permissions and side effects.
+- Signing and Attestation: signed tool manifests; server identity attestation to clients.
+- Session Scoping: bind credentials and storage to per-user, per-session contexts.
+
+Operational Guidance
+- Exposed Surface: do not publish MCP servers without authentication; place behind gateways; rotate secrets regularly.
+- Config Hygiene: version-controlled, reviewed configurations; explicit allowlists; fail-safe defaults.
+- Testing: security regression tests for tools; fuzzing for prompt and input handling.
+

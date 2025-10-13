@@ -1,1 +1,25 @@
-﻿% Threat model: assets, adversaries, assumptions, security goals.
+Assets
+- Confidential data: API keys, credentials, customer or proprietary data.
+- Integrity of actions: tool invocations, file edits, code execution results.
+- Availability: client/server uptime, rate limits, cost budgets.
+
+Adversaries
+- External attacker over the network.
+- Malicious or compromised tool/server provider (supply chain).
+- Insider or compromised operator endpoint.
+
+Assumptions
+- Transport provides confidentiality/integrity (TLS) but endpoints may be untrusted.
+- Models may hallucinate; prompts can be injected via content or tool metadata.
+- Tools differ in blast radius (filesystem vs. read-only HTTP).
+
+Security goals
+- Confidentiality: prevent secret leakage via tool responses and logs.
+- Integrity: prevent unauthorized or unintended side effects.
+- Availability: bound resource usage; degrade safely under attack.
+
+Trust boundaries
+- Client ↔ Server: authentication, authorization, capability negotiation.
+- Server ↔ Tools: isolation and policy enforcement.
+- User ↔ Model: prompt hygiene, content filtering, user consent/approval.
+

@@ -1,1 +1,38 @@
-﻿% Vulnerabilities and attacks: prompt/tool poisoning, plan injection, RCE, SSRF/DNS rebinding, authn/z gaps, supply chain.
+We group attacks by their primary vector and intended impact, illustrating each with recent cases.
+
+Prompt/Tool Poisoning
+- Malicious instructions embedded in tool descriptions or responses steer the model to leak data or execute risky actions. Impacts include credential exfiltration and policy bypass \cite{arXiv250323278,arXiv250812566}.
+
+Plan Injection
+- Multi-step reasoning frameworks (ReAct, ToT) can be subverted by crafted intermediate content to alter subsequent actions, escalating privileges over iterations \cite{arXiv250907595}.
+
+Remote Code Execution (RCE)
+- Unsafe command construction, insecure deserialization, or over-privileged tools lead to arbitrary code execution on the server/host.
+
+Network Pivoting (SSRF/DNS Rebinding)
+- Tools performing network I/O may be abused to access internal services or metadata endpoints; DNS rebinding can break origin assumptions.
+
+AuthN/Z Gaps and Open Servers
+- Exposed MCP servers without proper authentication or capability scoping allow arbitrary queries and data access \cite{MDPIElectronics3267}.
+
+Supply-Chain and Typosquatting
+- Malicious packages or server updates inject backdoors into tools, compromising downstream clients.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{@{}lll@{}}
+\toprule
+Attack Class & Typical Vector & Primary Impact \\
+\midrule
+Tool/Prompt Poisoning & Untrusted metadata/content & Data exfiltration, policy bypass \\
+Plan Injection & Iterative reasoning artifacts & Unauthorized actions, escalation \\
+RCE & Over-privileged tools, unsafe exec & Host compromise \\
+SSRF/DNS Rebinding & Network-capable tools & Internal data access, pivot \\
+AuthN/Z Gaps & Open/weakly protected servers & Unrestricted queries \\
+Supply Chain & Malicious packages/updates & Widespread compromise \\
+\bottomrule
+\end{tabular}
+\caption{MCP attack classes and effects (non-exhaustive).}
+\label{tab:attacks}
+\end{table}
+
