@@ -16,7 +16,7 @@
   - File: `docs/en/academic/electronics-14-03267-v2.pdf`
   - Link: https://www.mdpi.com/2079-9292/14/16/3267 (accessed 2025-10-13)
 - ResearchGate — "Integrating Generative AI and MCP with Applied ML ..." [Present]
-  - File: `docs/en/academic/integrating-generative-ai-and-model-context-protocol-mcp-with-applied-machine-learning-for-advanced-agentic-ai-systems-international-journal-of-computer-trends-and-technology-ijctt-nilesh-bhandarwar.pdf`
+  - File: `docs/en/academic/integrating-generative-ai-and-mcp-ijctt-bhandarwar.pdf`
   - Link: https://www.researchgate.net/.../Integrating-Generative-AI-and-Model-Context-Protocol-MCP-with-Applied-Machine-Learning-for-Advanced-Agentic-AI-Systems.pdf (accessed 2025-10-13)
 - arXiv HTML: 2507.08055v1 — "MCPmed (HTML version)" [Web only]
   - Link: https://arxiv.org/html/2507.08055v1 (accessed 2025-10-13)
@@ -26,4 +26,3 @@
 Notes
 - Additional related works are stored under `docs/en/academic/` and may not be cited yet.
 - Prefer citing the official publisher/DOI or arXiv abstract page; keep local PDFs for offline reference.
-
