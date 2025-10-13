@@ -1,470 +1,624 @@
-﻿# MCP AraÅŸtÄ±rma Raporu
+﻿# MCP Araştırma Raporu
 
-## Ã–zet
-- MCP (Model Context Protocol) mimarisi, istemciâ€“sunucu ayrÄ±mÄ± ve JSONâ€‘RPC tabanlÄ± araÃ§/ kaynak keÅŸfi ile birlikte Ã§alÄ±ÅŸabilirliÄŸi artÄ±rÄ±r.
-- KullanÄ±m alanlarÄ±; asistan entegrasyonu, otomasyon (tasarÄ±mdan koda), kurumsal veri eriÅŸimi ve cihaz kontrolÃ¼nÃ¼ kapsar.
-- GÃ¼venlikte temel riskler: araÃ§ zehirleme, prompt enjeksiyonu, aÃ§Ä±k sunucular, tedarik zinciri ve RCE vakalarÄ±; savunmada sandboxing, en az yetki ve denetlenebilirlik Ã¶ne Ã§Ä±kar.
-- StandartlaÅŸma ve yÃ¶netiÅŸim eksikleri ile performans/maliyet konularÄ±, gelecek Ã§alÄ±ÅŸmalarÄ±n odaÄŸÄ±dÄ±r.
+## Özet
+- MCP (Model Context Protocol) mimarisi, istemci–sunucu ayrımı ve JSON‑RPC tabanlı araç/ kaynak keşfi ile birlikte çalışabilirliği artırır.
+- Kullanım alanları; asistan entegrasyonu, otomasyon (tasarımdan koda), kurumsal veri erişimi ve cihaz kontrolünü kapsar.
+- Güvenlikte temel riskler: araç zehirleme, prompt enjeksiyonu, açık sunucular, tedarik zinciri ve RCE vakaları; savunmada sandboxing, en az yetki ve denetlenebilirlik öne çıkar.
+- Standartlaşma ve yönetişim eksikleri ile performans/maliyet konuları, gelecek çalışmaların odağıdır.
 
-Not: AyrÄ±ntÄ±lar iÃ§in Rapor bÃ¶lÃ¼mÃ¼ne geÃ§iniz.
+Not: Ayrıntılar için Rapor bölümüne geçiniz.
 
-## Ä°Ã§indekiler
-- [Ã–zet](#Ã¶zet)
+## İçindekiler
+- [Özet](#özet)
 - [Rapor](#rapor)
-- [Ek A: LiteratÃ¼r](#ek-a-literatÃ¼r)
+- [Ek A: Literatür](#ek-a-literatür)
 - [Ek B: Google Scholar ve Sentez](#ek-b-google-scholar-ve-sentez)
-- [Ek C: GÃ¼ncel Olaylar](#ek-c-gÃ¼ncel-olaylar)
+- [Ek C: Güncel Olaylar](#ek-c-güncel-olaylar)
 
 ## Rapor
 
-### GiriÅŸ
+### Giriş
 
-**Model Context Protocol (MCP)**, Anthropic ÅŸirketi tarafÄ±ndan aÃ§Ä±k kaynak olarak geliÅŸtirilmiÅŸ bir protokoldÃ¼r ve bÃ¼yÃ¼k dil modellerini (Large Language Models - *LLM*) harici veri kaynaklarÄ± ve araÃ§larla entegre etmeyi amaÃ§lar. Bir bakÄ±ma, yapay zeka uygulamalarÄ± iÃ§in **USB-C standardÄ±** gibi Ã§alÄ±ÅŸarak LLM tabanlÄ± uygulamalarÄ±n dÄ±ÅŸ sistemlerle baÄŸlanmasÄ± iÃ§in standart bir yol saÄŸlar. Bu araÅŸtÄ±rmanÄ±n amacÄ±, MCP protokolÃ¼nÃ¼n teknik mimarisi ile aÄŸ iÃ§i iÅŸleyiÅŸ modelini inceleyerek yazÄ±lÄ±m geliÅŸtirme sÃ¼reÃ§lerindeki kullanÄ±m biÃ§imlerini ortaya koymak ve protokolÃ¼n siber gÃ¼venlik baÄŸlamÄ±nda oluÅŸturabileceÄŸi potansiyel riskleri deÄŸerlendirmektir. Bu doÄŸrultuda, MCPâ€™nin temel hedefleri ve kullanÄ±m alanlarÄ±, mimari yapÄ±sÄ± ve veri iletim mekanizmasÄ±, hangi katmanda Ã§alÄ±ÅŸtÄ±ÄŸÄ± ve bunun saÄŸladÄ±ÄŸÄ± avantajlar ile protokolÃ¼n aÃ§Ä±k kaynak olmasÄ±nÄ±n gÃ¼venliÄŸe etkileri ele alÄ±nacaktÄ±r. AyrÄ±ca MCPâ€™ye yÃ¶nelik olasÄ± saldÄ±rÄ± tÃ¼rleri (Ã¶rn. Ortadaki Adam, Replay, Enjeksiyon) incelenerek Anthropicâ€™in (Antopic) uyguladÄ±ÄŸÄ± gÃ¼venlik Ã¶nlemlerinin yeterliliÄŸi deÄŸerlendirilecek ve **MCPâ€™nin gÃ¼venli bir ÅŸekilde uygulanabilmesi iÃ§in Ã¶neriler** sunulacaktÄ±r.
+**Model Context Protocol (MCP)**, Anthropic şirketi tarafından açık kaynak olarak geliştirilmiş bir protokoldür ve büyük dil modellerini (Large Language Models - *LLM*) harici veri kaynakları ve araçlarla entegre etmeyi amaçlar. Bir bakıma, yapay zeka uygulamaları için **USB-C standardı** gibi çalışarak LLM tabanlı uygulamaların dış sistemlerle bağlanması için standart bir yol sağlar. Bu araştırmanın amacı, MCP protokolünün teknik mimarisi ile ağ içi işleyiş modelini inceleyerek yazılım geliştirme süreçlerindeki kullanım biçimlerini ortaya koymak ve protokolün siber güvenlik bağlamında oluşturabileceği potansiyel riskleri değerlendirmektir. Bu doğrultuda, MCP’nin temel hedefleri ve kullanım alanları, mimari yapısı ve veri iletim mekanizması, hangi katmanda çalıştığı ve bunun sağladığı avantajlar ile protokolün açık kaynak olmasının güvenliğe etkileri ele alınacaktır. Ayrıca MCP’ye yönelik olası saldırı türleri (örn. Ortadaki Adam, Replay, Enjeksiyon) incelenerek Anthropic’in (Antopic) uyguladığı güvenlik önlemlerinin yeterliliği değerlendirilecek ve **MCP’nin güvenli bir şekilde uygulanabilmesi için öneriler** sunulacaktır.
 
 <img width="1207" height="799" alt="resim" src="https://github.com/user-attachments/assets/bdf1510b-66f6-427b-9562-f8653e73d66e" />
 
 
-### MCP ProtokolÃ¼nÃ¼n AmacÄ± ve KullanÄ±m AlanlarÄ±
+### MCP Protokolünün Amacı ve Kullanım Alanları
 
-MCP protokolÃ¼nÃ¼n temel amacÄ±, LLM tabanlÄ± yapay zeka uygulamalarÄ± ile harici araÃ§lar, veri kaynaklarÄ± ve hizmetler arasÄ±nda **standart bir baÄŸlamsal iletiÅŸim** saÄŸlamaktÄ±r. Bu sayede bir yapay zeka modeli, kÄ±sÄ±tlÄ± kendi bilgi havuzunun Ã¶tesine geÃ§erek gÃ¼ncel verilere eriÅŸebilir, Ã§eÅŸitli eylemleri tetikleyebilir veya harici uygulamalardan sonuÃ§lar alabilir. Ã–rneÄŸin GitHub Copilot gibi bir kod yardÄ±mÄ± aracÄ±, MCP Ã¼zerinden GitHubâ€™Ä±n kendi hizmetleriyle veya Ã¼Ã§Ã¼ncÃ¼ parti araÃ§larla entegre olarak daha ileri iÅŸlemler yapabilmektedir. Anthropicâ€™in Claude modeli gibi bir LLM de MCP sayesinde harici â€œaraÃ§larâ€ kullanarak ide ortamÄ±nda dosya sistemine eriÅŸmek veya bir hata izleme (sentry) platformundan veri Ã§ekmek gibi eylemlere giriÅŸebilir.
+MCP protokolünün temel amacı, LLM tabanlı yapay zeka uygulamaları ile harici araçlar, veri kaynakları ve hizmetler arasında **standart bir bağlamsal iletişim** sağlamaktır. Bu sayede bir yapay zeka modeli, kısıtlı kendi bilgi havuzunun ötesine geçerek güncel verilere erişebilir, çeşitli eylemleri tetikleyebilir veya harici uygulamalardan sonuçlar alabilir. Örneğin GitHub Copilot gibi bir kod yardımı aracı, MCP üzerinden GitHub’ın kendi hizmetleriyle veya üçüncü parti araçlarla entegre olarak daha ileri işlemler yapabilmektedir. Anthropic’in Claude modeli gibi bir LLM de MCP sayesinde harici “araçlar” kullanarak ide ortamında dosya sistemine erişmek veya bir hata izleme (sentry) platformundan veri çekmek gibi eylemlere girişebilir.
 
 <img width="960" height="540" alt="resim" src="https://github.com/user-attachments/assets/ac7686e8-9c5d-4a30-be7c-9fa1f7328325" />
 
-MCP protokolÃ¼, geniÅŸ bir yelpazedeki kullanÄ±m senaryolarÄ±nÄ± mÃ¼mkÃ¼n kÄ±larak yapay zekÃ¢ uygulamalarÄ±nÄ±n yeteneklerini artÄ±rÄ±r. AÅŸaÄŸÄ±da MCPâ€™nin saÄŸlayabildiÄŸi bazÄ± olanaklar listelenmiÅŸtir:
+MCP protokolü, geniş bir yelpazedeki kullanım senaryolarını mümkün kılarak yapay zekâ uygulamalarının yeteneklerini artırır. Aşağıda MCP’nin sağlayabildiği bazı olanaklar listelenmiştir:
 
-* **KiÅŸisel Asistan Entegrasyonu:** Yapay zekÃ¢ â€œagentâ€larÄ± kullanÄ±cÄ±larÄ±n Google Takvimi veya Notion hesaplarÄ±na baÄŸlanarak daha kiÅŸiselleÅŸtirilmiÅŸ asistanlar gibi davranabilir. Ã–rneÄŸin, takvimden randevularÄ± okuma veya yeni notlar oluÅŸturma gibi iÅŸlemleri gerÃ§ekleÅŸtirebilir.
-* **TasarÄ±m'dan Koda Otomasyon:** Claude Code gibi bir AI aracÄ±, MCP aracÄ±lÄ±ÄŸÄ±yla bir Figma tasarÄ±mÄ±nÄ± analiz ederek komple bir web uygulamasÄ±nÄ± otomatik olarak oluÅŸturabilir. Bu, tasarÄ±m ve geliÅŸtirme sÃ¼reÃ§lerini hÄ±zlandÄ±ran bir entegrasyon Ã¶rneÄŸidir.
-* **Kurumsal Veri EriÅŸimi:** Kurum iÃ§indeki bir sohbet botu, MCP Ã¼zerinden organizasyonun farklÄ± veritabanlarÄ±na aynÄ± anda baÄŸlanabilir ve kullanÄ±cÄ±nÄ±n doÄŸal dilde sorduÄŸu sorulara dayanarak gerÃ§ek zamanlÄ± veri analizi yapabilir. Bu sayede tek bir arayÃ¼z Ã¼zerinden birden Ã§ok veri kaynaÄŸÄ± taranabilir.
-* **Fiziksel Cihaz KontrolÃ¼:** Bir yapay zekÃ¢ modeli, MCP ile Blender gibi bir 3D tasarÄ±m aracÄ±na ve bir 3B yazÄ±cÄ±ya baÄŸlanarak, doÄŸal dil komutlarla 3D model tasarlayÄ±p bunu yazÄ±cÄ±dan basabilir.
+* **Kişisel Asistan Entegrasyonu:** Yapay zekâ “agent”ları kullanıcıların Google Takvimi veya Notion hesaplarına bağlanarak daha kişiselleştirilmiş asistanlar gibi davranabilir. Örneğin, takvimden randevuları okuma veya yeni notlar oluşturma gibi işlemleri gerçekleştirebilir.
+* **Tasarım'dan Koda Otomasyon:** Claude Code gibi bir AI aracı, MCP aracılığıyla bir Figma tasarımını analiz ederek komple bir web uygulamasını otomatik olarak oluşturabilir. Bu, tasarım ve geliştirme süreçlerini hızlandıran bir entegrasyon örneğidir.
+* **Kurumsal Veri Erişimi:** Kurum içindeki bir sohbet botu, MCP üzerinden organizasyonun farklı veritabanlarına aynı anda bağlanabilir ve kullanıcının doğal dilde sorduğu sorulara dayanarak gerçek zamanlı veri analizi yapabilir. Bu sayede tek bir arayüz üzerinden birden çok veri kaynağı taranabilir.
+* **Fiziksel Cihaz Kontrolü:** Bir yapay zekâ modeli, MCP ile Blender gibi bir 3D tasarım aracına ve bir 3B yazıcıya bağlanarak, doğal dil komutlarla 3D model tasarlayıp bunu yazıcıdan basabilir.
 
-YukarÄ±daki Ã¶rnekler MCPâ€™nin **genel amaÃ§lÄ± bir entegrasyon altyapÄ±sÄ±** olarak ne denli esnek kullanÄ±labildiÄŸini gÃ¶stermektedir. Son kullanÄ±cÄ± aÃ§Ä±sÄ±ndan bu, yapay zekÃ¢ destekli uygulamalarÄ±n kendi verilerine eriÅŸip gerekirse kullanÄ±cÄ± adÄ±na eyleme geÃ§ebilen daha yetenekli asistanlar haline gelmesi demektir. GeliÅŸtiriciler iÃ§in ise MCP, bir yapay zekÃ¢ uygulamasÄ±na entegrasyon noktalarÄ± eklerken zaman kazandÄ±ran ve karmaÅŸÄ±klÄ±ÄŸÄ± azaltan standart bir arayÃ¼z sunmaktadÄ±r.
+Yukarıdaki örnekler MCP’nin **genel amaçlı bir entegrasyon altyapısı** olarak ne denli esnek kullanılabildiğini göstermektedir. Son kullanıcı açısından bu, yapay zekâ destekli uygulamaların kendi verilerine erişip gerekirse kullanıcı adına eyleme geçebilen daha yetenekli asistanlar haline gelmesi demektir. Geliştiriciler için ise MCP, bir yapay zekâ uygulamasına entegrasyon noktaları eklerken zaman kazandıran ve karmaşıklığı azaltan standart bir arayüz sunmaktadır.
 
-### MCP'nin Mimari YapÄ±sÄ± ve Veri Ä°letim MekanizmasÄ±
+### MCP'nin Mimari Yapısı ve Veri İletim Mekanizması
 
 
 <img width="840" height="328" alt="resim" src="https://github.com/user-attachments/assets/ba600697-942e-426f-ad1c-839875ef9772" />
 
 
-MCP istemci ve sunucularÄ±nÄ±n LLM ile etkileÅŸimini gÃ¶steren Ã¶rnek bir akÄ±ÅŸ diagramÄ±. KullanÄ±cÄ± isteÄŸi, istemci tarafÄ±ndan LLM'ye iletilir; LLM uygun aracÄ± seÃ§erek sunucuya Ã§aÄŸrÄ± yapar ve sonuÃ§ yine LLM Ã¼zerinden kullanÄ±cÄ±ya dÃ¶ner.*
+MCP istemci ve sunucularının LLM ile etkileşimini gösteren örnek bir akış diagramı. Kullanıcı isteği, istemci tarafından LLM'ye iletilir; LLM uygun aracı seçerek sunucuya çağrı yapar ve sonuç yine LLM üzerinden kullanıcıya döner.*
 
-MCP protokolÃ¼, istemci-sunucu modeline dayalÄ± **iki katmanlÄ± bir mimariye** sahiptir. Katmanlardan ilki **veri katmanÄ±** (*data layer*) olup istemci ile sunucu arasÄ±ndaki mesajlarÄ±n yapÄ±sÄ±nÄ± ve anlamÄ±nÄ± tanÄ±mlayan bir JSON-RPC 2.0 tabanlÄ± protokoldÃ¼r. Bu katmanda baÄŸlantÄ±nÄ±n baÅŸlatÄ±lmasÄ±, sÃ¼rdÃ¼rÃ¼lmesi ve sonlandÄ±rÄ±lmasÄ± gibi yaÅŸam dÃ¶ngÃ¼sÃ¼ yÃ¶netimi; sunucunun saÄŸlayabileceÄŸi *araÃ§lar* (tools) ve *kaynaklar* (resources) gibi iÅŸlevler; istemcinin LLM'den Ã§Ä±ktÄ± Ã¼retmesini talep etme veya kullanÄ±cÄ± girdisi isteme gibi kabiliyetler ve uyarÄ±/iletiÅŸim amaÃ§lÄ± *bildirimler* yer alÄ±r. Ä°kinci katman olan **taÅŸÄ±ma katmanÄ±** (*transport layer*), veri alÄ±ÅŸveriÅŸinin hangi iletiÅŸim kanallarÄ± Ã¼zerinden ve nasÄ±l yapÄ±lacaÄŸÄ±nÄ± tanÄ±mlar; baÄŸlantÄ± kurulumu, mesaj Ã§erÃ§eveleri ve taraflar arasÄ±nda kimlik doÄŸrulama bu katmanda ele alÄ±nÄ±r. MCPâ€™nin tasarÄ±mÄ±nda mevcut iki taÅŸÄ±ma yÃ¶ntemi ÅŸunlardÄ±r:
+MCP protokolü, istemci-sunucu modeline dayalı **iki katmanlı bir mimariye** sahiptir. Katmanlardan ilki **veri katmanı** (*data layer*) olup istemci ile sunucu arasındaki mesajların yapısını ve anlamını tanımlayan bir JSON-RPC 2.0 tabanlı protokoldür. Bu katmanda bağlantının başlatılması, sürdürülmesi ve sonlandırılması gibi yaşam döngüsü yönetimi; sunucunun sağlayabileceği *araçlar* (tools) ve *kaynaklar* (resources) gibi işlevler; istemcinin LLM'den çıktı üretmesini talep etme veya kullanıcı girdisi isteme gibi kabiliyetler ve uyarı/iletişim amaçlı *bildirimler* yer alır. İkinci katman olan **taşıma katmanı** (*transport layer*), veri alışverişinin hangi iletişim kanalları üzerinden ve nasıl yapılacağını tanımlar; bağlantı kurulumu, mesaj çerçeveleri ve taraflar arasında kimlik doğrulama bu katmanda ele alınır. MCP’nin tasarımında mevcut iki taşıma yöntemi şunlardır:
 
-* **STDIO TaÅŸÄ±masÄ±:** Ä°stemci ve sunucunun aynÄ± makinede yerel olarak Ã§alÄ±ÅŸtÄ±ÄŸÄ± durumlarda standart girdi/Ã§Ä±ktÄ± akÄ±ÅŸÄ± Ã¼zerinden iletiÅŸim kurulabilir. Bu yÃ¶ntem, herhangi bir aÄŸ protokolÃ¼ kullanmadÄ±ÄŸÄ± iÃ§in ek gecikme veya aÄŸ trafiÄŸi oluÅŸturmaz; dolayÄ±sÄ±yla maksimum performans saÄŸlar ve Ã¶zellikle bir IDE iÃ§inde Ã§alÄ±ÅŸtÄ±rÄ±lan yerel araÃ§lar iÃ§in idealdir.
-* **AkÄ±ÅŸ Destekli HTTP TaÅŸÄ±masÄ±:** Ä°stemci ile sunucu arasÄ±nda HTTP Ã¼zerinden iletiÅŸim kurulmasÄ±nÄ± saÄŸlar. Ä°stemci, sunucuya JSON tabanlÄ± isteklerini HTTP POST ile gÃ¶nderirken; sunucu gerektiÄŸinde **Server-Sent Events (SSE)** kullanarak istemciye akan (*streaming*) yanÄ±tlar iletebilir. Bu yÃ¶ntem uzaktaki (bulut veya internet Ã¼zerindeki) MCP sunucularÄ±na baÄŸlanmak iÃ§in kullanÄ±lÄ±r ve standart HTTP kimlik doÄŸrulama mekanizmalarÄ±nÄ± destekler (taÅŸÄ±yÄ±cÄ± jetonlar, API anahtarlarÄ± veya Ã¶zel baÅŸlÄ±klar gibi). Uzaktan iletiÅŸimde verinin gizliliÄŸi ve bÃ¼tÃ¼nlÃ¼ÄŸÃ¼ iÃ§in MCP Ã¼zerinden **HTTPS (TLS ÅŸifrelemesi)** kullanÄ±lmasÄ± Ã¶nerilmektedir.
+* **STDIO Taşıması:** İstemci ve sunucunun aynı makinede yerel olarak çalıştığı durumlarda standart girdi/çıktı akışı üzerinden iletişim kurulabilir. Bu yöntem, herhangi bir ağ protokolü kullanmadığı için ek gecikme veya ağ trafiği oluşturmaz; dolayısıyla maksimum performans sağlar ve özellikle bir IDE içinde çalıştırılan yerel araçlar için idealdir.
+* **Akış Destekli HTTP Taşıması:** İstemci ile sunucu arasında HTTP üzerinden iletişim kurulmasını sağlar. İstemci, sunucuya JSON tabanlı isteklerini HTTP POST ile gönderirken; sunucu gerektiğinde **Server-Sent Events (SSE)** kullanarak istemciye akan (*streaming*) yanıtlar iletebilir. Bu yöntem uzaktaki (bulut veya internet üzerindeki) MCP sunucularına bağlanmak için kullanılır ve standart HTTP kimlik doğrulama mekanizmalarını destekler (taşıyıcı jetonlar, API anahtarları veya özel başlıklar gibi). Uzaktan iletişimde verinin gizliliği ve bütünlüğü için MCP üzerinden **HTTPS (TLS şifrelemesi)** kullanılması önerilmektedir.
 
-YukarÄ±daki mimari sayesinde MCP, birden fazla sunucuya aynÄ± anda baÄŸlanabilen esnek bir istemci-Ã§oklu sunucu topolojisi oluÅŸturur. Bu yapÄ±da **MCP Ä°stemcisi**, LLM barÄ±ndÄ±ran uygulamanÄ±n iÃ§inde Ã§alÄ±ÅŸarak her bir MCP sunucusuyla birebir baÄŸlantÄ± kuran bileÅŸendir. **MCP Sunucusu** ise harici baÄŸlam bilgisini saÄŸlayan baÄŸÄ±msÄ±z bir sÃ¼reÃ§tir; dosya sistemi, veritabanÄ±, harici API gibi kaynaklara eriÅŸebilir ve bunlarÄ± istemciye bir â€œaraÃ§â€ arayÃ¼zÃ¼yle sunar. Ã–rneÄŸin Visual Studio Code editÃ¶rÃ¼ bir MCP **host** uygulamasÄ± olarak dÃ¼ÅŸÃ¼nÃ¼lebilir; VS Code, Sentry hata izleme sistemi iÃ§in bir MCP sunucusuna baÄŸlandÄ±ÄŸÄ±nda (uzak bir sunucu), aynÄ± anda yerel dosya sistemi eriÅŸimi sunan baÅŸka bir MCP sunucusuna da baÄŸlanabilir. Bu durumda VS Code iÃ§inde her sunucu baÄŸlantÄ±sÄ± iÃ§in ayrÄ± bir MCP istemci nesnesi Ã§alÄ±ÅŸÄ±r ve her biri ilgili sunucusundan veri Ã§eker.
+Yukarıdaki mimari sayesinde MCP, birden fazla sunucuya aynı anda bağlanabilen esnek bir istemci-çoklu sunucu topolojisi oluşturur. Bu yapıda **MCP İstemcisi**, LLM barındıran uygulamanın içinde çalışarak her bir MCP sunucusuyla birebir bağlantı kuran bileşendir. **MCP Sunucusu** ise harici bağlam bilgisini sağlayan bağımsız bir süreçtir; dosya sistemi, veritabanı, harici API gibi kaynaklara erişebilir ve bunları istemciye bir “araç” arayüzüyle sunar. Örneğin Visual Studio Code editörü bir MCP **host** uygulaması olarak düşünülebilir; VS Code, Sentry hata izleme sistemi için bir MCP sunucusuna bağlandığında (uzak bir sunucu), aynı anda yerel dosya sistemi erişimi sunan başka bir MCP sunucusuna da bağlanabilir. Bu durumda VS Code içinde her sunucu bağlantısı için ayrı bir MCP istemci nesnesi çalışır ve her biri ilgili sunucusundan veri çeker.
 
 <img width="836" height="512" alt="resim" src="https://github.com/user-attachments/assets/d0cdaa6e-aff0-4d03-ab74-bbd6107c5ff1" />
 
-**Veri iletim mekanizmasÄ±**, istemci, sunucu ve LLM arasÄ±ndaki etkileÅŸimle gerÃ§ekleÅŸir. Bu akÄ±ÅŸÄ± adÄ±m adÄ±m incelemek gerekirse:
+**Veri iletim mekanizması**, istemci, sunucu ve LLM arasındaki etkileşimle gerçekleşir. Bu akışı adım adım incelemek gerekirse:
 
-1. **KullanÄ±cÄ± isteÄŸi:** Son kullanÄ±cÄ±, MCP entegrasyonuna sahip AI uygulamasÄ±ndan (Ã¶rneÄŸin bir sohbet arayÃ¼zÃ¼ veya IDE) bir talepte bulunur. Bu talep doÄŸal dilde bir komut, soru veya gÃ¶rev tanÄ±mÄ± olabilir ve Ã¶ncelikle **MCP istemcisi** tarafÄ±ndan ele alÄ±nÄ±r.
-2. **LLM ile planlama:** MCP istemcisi, baÄŸlÄ± olduÄŸu MCP sunucularÄ±nÄ±n hangi araÃ§larÄ± saÄŸladÄ±ÄŸÄ± bilgisini elinde tutar. KullanÄ±cÄ±nÄ±n isteÄŸini alÄ±r almaz istemci, sunuculardan aldÄ±ÄŸÄ± bu yetenek bilgilerini de **LLMâ€™ye aktarÄ±r**. BaÅŸka bir deyiÅŸle, LLMâ€™ye *â€œÅŸu ÅŸu araÃ§lar mevcutâ€* bilgisini vererek kullanÄ±cÄ± talebini Ã§Ã¶zÃ¼mler. LLM, verilen gÃ¶revi yerine getirmek iÃ§in hangi araca ihtiyaÃ§ olduÄŸunu ve bu araca hangi parametrelerle Ã§aÄŸrÄ± yapÄ±lacaÄŸÄ±nÄ± kararlaÅŸtÄ±rÄ±r ve istemciye bir yanÄ±t Ã¼retir.
-3. **Sunucuya istek:** LLMâ€™nin yanÄ±tÄ±na gÃ¶re MCP istemcisi, ilgili aracÄ± barÄ±ndÄ±ran MCP **sunucusuna** bir istek gÃ¶nderir. Bu istek, belirli bir aracÄ± Ã§alÄ±ÅŸtÄ±rma komutunu ve gerekli parametreleri iÃ§erir. Ä°letiÅŸim, yerel sunucu ise STDIO Ã¼zerinden, uzak sunucu ise HTTP istekleri ile gerÃ§ekleÅŸir.
-4. **Sunucu iÅŸlemi ve yanÄ±t:** MCP sunucusu, kendisine iletilen komutu gerÃ§ekleÅŸtirir. Ã–rneÄŸin bir dosya okuma aracÄ±na parametre olarak bir dosya yolu verildiyse, sunucu dosyayÄ± okuyup iÃ§eriÄŸini dÃ¶ndÃ¼rÃ¼r. Sunucu, iÅŸlemin sonucunu (ya da hata Ã§Ä±ktÄ±ysa hata bilgisini) MCP istemcisine geri gÃ¶nderir.
-5. **LLM'nin sonuÃ§ Ã¼retmesi:** MCP istemcisi sunucudan aldÄ±ÄŸÄ± ham sonucu tekrar LLMâ€™ye iletir (veya LLM zaten Ã¶nceki adÄ±mda bu sonucu bekliyor olabilir). LLM, sunucudan gelen veriyi kullanarak kullanÄ±cÄ±ya verilecek nihai cevabÄ± oluÅŸturur. Ã–rneÄŸin, dosya iÃ§eriÄŸi istenmiÅŸse bunu kullanÄ±cÄ±ya uygun biÃ§imde sunan bir metin cevabÄ± Ã¼retir.
-6. **KullanÄ±cÄ±ya sunum:** Son olarak MCP istemcisi, LLMâ€™nin Ã¼rettiÄŸi cevabÄ± alÄ±r ve uygulama arayÃ¼zÃ¼ Ã¼zerinden kullanÄ±cÄ±ya gÃ¶sterir. KullanÄ±cÄ±, talebinin sonucunu insan tarafÄ±ndan yazÄ±lmÄ±ÅŸÃ§asÄ±na doÄŸal bir dilde almÄ±ÅŸ olur.
+1. **Kullanıcı isteği:** Son kullanıcı, MCP entegrasyonuna sahip AI uygulamasından (örneğin bir sohbet arayüzü veya IDE) bir talepte bulunur. Bu talep doğal dilde bir komut, soru veya görev tanımı olabilir ve öncelikle **MCP istemcisi** tarafından ele alınır.
+2. **LLM ile planlama:** MCP istemcisi, bağlı olduğu MCP sunucularının hangi araçları sağladığı bilgisini elinde tutar. Kullanıcının isteğini alır almaz istemci, sunuculardan aldığı bu yetenek bilgilerini de **LLM’ye aktarır**. Başka bir deyişle, LLM’ye *“şu şu araçlar mevcut”* bilgisini vererek kullanıcı talebini çözümler. LLM, verilen görevi yerine getirmek için hangi araca ihtiyaç olduğunu ve bu araca hangi parametrelerle çağrı yapılacağını kararlaştırır ve istemciye bir yanıt üretir.
+3. **Sunucuya istek:** LLM’nin yanıtına göre MCP istemcisi, ilgili aracı barındıran MCP **sunucusuna** bir istek gönderir. Bu istek, belirli bir aracı çalıştırma komutunu ve gerekli parametreleri içerir. İletişim, yerel sunucu ise STDIO üzerinden, uzak sunucu ise HTTP istekleri ile gerçekleşir.
+4. **Sunucu işlemi ve yanıt:** MCP sunucusu, kendisine iletilen komutu gerçekleştirir. Örneğin bir dosya okuma aracına parametre olarak bir dosya yolu verildiyse, sunucu dosyayı okuyup içeriğini döndürür. Sunucu, işlemin sonucunu (ya da hata çıktıysa hata bilgisini) MCP istemcisine geri gönderir.
+5. **LLM'nin sonuç üretmesi:** MCP istemcisi sunucudan aldığı ham sonucu tekrar LLM’ye iletir (veya LLM zaten önceki adımda bu sonucu bekliyor olabilir). LLM, sunucudan gelen veriyi kullanarak kullanıcıya verilecek nihai cevabı oluşturur. Örneğin, dosya içeriği istenmişse bunu kullanıcıya uygun biçimde sunan bir metin cevabı üretir.
+6. **Kullanıcıya sunum:** Son olarak MCP istemcisi, LLM’nin ürettiği cevabı alır ve uygulama arayüzü üzerinden kullanıcıya gösterir. Kullanıcı, talebinin sonucunu insan tarafından yazılmışçasına doğal bir dilde almış olur.
 
-Bu iÅŸlem dÃ¶ngÃ¼sÃ¼, MCP sayesinde LLM tabanlÄ± bir sistemin **etkin bir araÃ§ kullanÄ±cÄ±sÄ±na** dÃ¶nÃ¼ÅŸmesini saÄŸlamaktadÄ±r. Ã–nemle vurgulanmalÄ±dÄ±r ki MCP, LLM ile araÃ§lar arasÄ±nda doÄŸrudan bir baÄŸlantÄ± kurmaz; bunun yerine istemci ve sunucu aracÄ±lÄ±ÄŸÄ±yla kontrollÃ¼ bir entegrasyon gerÃ§ekleÅŸtirir. Ä°stemci tarafÄ± LLM ile konuÅŸmaktan sorumlu iken, sunucu tarafÄ± gerÃ§ek dÃ¼nya araÃ§larÄ±nÄ± Ã§alÄ±ÅŸtÄ±rma gÃ¶revini Ã¼stlenir. Bu ayrÄ±m, gÃ¼venlik ve kontrol aÃ§Ä±sÄ±ndan da Ã¶nemlidir Ã§Ã¼nkÃ¼ LLMâ€™nin her ÅŸeye doÄŸrudan eriÅŸimi olmaz; sadece istemcinin sunduÄŸu arayÃ¼z dahilinde eylem yapabilir.
+Bu işlem döngüsü, MCP sayesinde LLM tabanlı bir sistemin **etkin bir araç kullanıcısına** dönüşmesini sağlamaktadır. Önemle vurgulanmalıdır ki MCP, LLM ile araçlar arasında doğrudan bir bağlantı kurmaz; bunun yerine istemci ve sunucu aracılığıyla kontrollü bir entegrasyon gerçekleştirir. İstemci tarafı LLM ile konuşmaktan sorumlu iken, sunucu tarafı gerçek dünya araçlarını çalıştırma görevini üstlenir. Bu ayrım, güvenlik ve kontrol açısından da önemlidir çünkü LLM’nin her şeye doğrudan erişimi olmaz; sadece istemcinin sunduğu arayüz dahilinde eylem yapabilir.
 
-### ProtokolÃ¼n Katman Seviyesi ve AvantajlarÄ±
+### Protokolün Katman Seviyesi ve Avantajları
 
-MCP protokolÃ¼ **uygulama katmanÄ±nda** Ã§alÄ±ÅŸan bir protokoldÃ¼r. Yani OSI modeline gÃ¶re bakÄ±ldÄ±ÄŸÄ±nda, TCP/IP gibi taÅŸÄ±ma katmanÄ± protokollerinin Ã¼zerinde konumlanÄ±r ve uygulamalar arasÄ± veri alÄ±ÅŸveriÅŸinin anlamÄ±nÄ± tanÄ±mlar. Bu yÃ¼ksek seviyeli konum, MCPâ€™ye Ã¶nemli avantajlar kazandÄ±rmaktadÄ±r. Ã–ncelikle, uygulama katmanÄ± protokolÃ¼ olduÄŸu iÃ§in MCP mesajlarÄ± **insan tarafÄ±ndan okunabilir JSON** formatÄ±nda tanÄ±mlanmÄ±ÅŸtÄ±r ve bu sayede dil agnostik bir ÅŸekilde birden fazla programlama dilinde kolaylÄ±kla uygulanabilir (nitekim halihazÄ±rda MCP iÃ§in Python, TypeScript, Java, C#, Go, Rust gibi farklÄ± dillerde SDKâ€™lar mevcuttur). Protokol mesajlarÄ±nÄ±n JSON-RPC standardÄ±nÄ± kullanmasÄ±, yapÄ±landÄ±rÄ±lmÄ±ÅŸ bir iletiÅŸim saÄŸlayarak hem istemci hem sunucu tarafÄ±nda uygulanmasÄ±nÄ± ve hata ayÄ±klamasÄ±nÄ± kolaylaÅŸtÄ±rÄ±r.
+MCP protokolü **uygulama katmanında** çalışan bir protokoldür. Yani OSI modeline göre bakıldığında, TCP/IP gibi taşıma katmanı protokollerinin üzerinde konumlanır ve uygulamalar arası veri alışverişinin anlamını tanımlar. Bu yüksek seviyeli konum, MCP’ye önemli avantajlar kazandırmaktadır. Öncelikle, uygulama katmanı protokolü olduğu için MCP mesajları **insan tarafından okunabilir JSON** formatında tanımlanmıştır ve bu sayede dil agnostik bir şekilde birden fazla programlama dilinde kolaylıkla uygulanabilir (nitekim halihazırda MCP için Python, TypeScript, Java, C#, Go, Rust gibi farklı dillerde SDK’lar mevcuttur). Protokol mesajlarının JSON-RPC standardını kullanması, yapılandırılmış bir iletişim sağlayarak hem istemci hem sunucu tarafında uygulanmasını ve hata ayıklamasını kolaylaştırır.
 
-MCPâ€™nin taÅŸÄ±ma baÄŸÄ±msÄ±z bir Ã¼st dÃ¼zey protokol olarak tasarlanmÄ±ÅŸ olmasÄ±, **esneklik** ve **uyumluluk** avantajÄ± saÄŸlar. Protokol, altÄ±nda yatan taÅŸÄ±ma katmanÄ±nÄ± soyutlayabildiÄŸi iÃ§in aynÄ± veri yapÄ±sÄ±nÄ± ister yerel ister uzak senaryolarda iletebilir. Ã–rneÄŸin, bir geliÅŸtirici MCP sunucusunu baÅŸlangÄ±Ã§ta yerel STDIO modunda Ã§alÄ±ÅŸtÄ±rÄ±p test edebilir; daha sonra minimal deÄŸiÅŸiklikle aynÄ± sunucuyu uzak bir HTTP servis olarak daÄŸÄ±tabilir. Bu sayede protokol, geliÅŸen ihtiyaÃ§lara gÃ¶re Ã¶lÃ§eklenebilir bir yapÄ± sunar. AyrÄ±ca MCP, doÄŸrudan IP seviyesinde yeni bir protokol icat etmeyip HTTP gibi yaygÄ±n bir uygulama protokolÃ¼nÃ¼ opsiyon olarak kullandÄ±ÄŸÄ± iÃ§in mevcut altyapÄ±larla **uyumludur** â€“ gÃ¼venlik duvarlarÄ±, yÃ¼k dengeleyiciler veya HTTPS ÅŸifrelemesi gibi halihazÄ±rda oturmuÅŸ mekanizmalarÄ± tekrar keÅŸfetmeye gerek kalmadan kullanabilir.
+MCP’nin taşıma bağımsız bir üst düzey protokol olarak tasarlanmış olması, **esneklik** ve **uyumluluk** avantajı sağlar. Protokol, altında yatan taşıma katmanını soyutlayabildiği için aynı veri yapısını ister yerel ister uzak senaryolarda iletebilir. Örneğin, bir geliştirici MCP sunucusunu başlangıçta yerel STDIO modunda çalıştırıp test edebilir; daha sonra minimal değişiklikle aynı sunucuyu uzak bir HTTP servis olarak dağıtabilir. Bu sayede protokol, gelişen ihtiyaçlara göre ölçeklenebilir bir yapı sunar. Ayrıca MCP, doğrudan IP seviyesinde yeni bir protokol icat etmeyip HTTP gibi yaygın bir uygulama protokolünü opsiyon olarak kullandığı için mevcut altyapılarla **uyumludur** – güvenlik duvarları, yük dengeleyiciler veya HTTPS şifrelemesi gibi halihazırda oturmuş mekanizmaları tekrar keşfetmeye gerek kalmadan kullanabilir.
 
-TaÅŸÄ±ma katmanÄ±nÄ±n soyutlanmasÄ±yla gelen bir diÄŸer avantaj, **gÃ¼venli iletiÅŸim ve kimlik doÄŸrulama konusunda standartlarÄ±n yeniden kullanÄ±lmasÄ±dÄ±r**. MCP, uzak sunucularla haberleÅŸirken HTTPS Ã¼zerinden Ã§alÄ±ÅŸarak TLS ÅŸifrelemesini devreye sokabilmekte ve HTTPâ€™nin oturmuÅŸ kimlik doÄŸrulama yÃ¶ntemlerini (OAuth eriÅŸim tokenlarÄ±, API anahtarlarÄ±, vb.) aynen kullanabilmektedir. Bu, protokolÃ¼n gÃ¼venlik konusunda gÃ¼venilir ve test edilmiÅŸ yÃ¶ntemlerden faydalanmasÄ±nÄ± saÄŸlar. Ã–rneÄŸin, Anthropic varsayÄ±lan olarak MCP yetkilendirmesi iÃ§in OAuth 2.0 tabanlÄ± bir token mekanizmasÄ±nÄ± Ã¶ngÃ¶rmÃ¼ÅŸtÃ¼r. Son kullanÄ±cÄ± aÃ§Ä±sÄ±ndan, MCP trafikleri tÄ±pkÄ± bir web trafiÄŸi gibi gÃ¼venli kanaldan akabildiÄŸi iÃ§in aÄŸ dinlemesi veya benzeri riskler azaltÄ±lmaktadÄ±r. Ã–te yandan yerel taÅŸÄ±ma seÃ§eneÄŸi (STDIO), aÄŸ Ã¼zerinden veri geÃ§irmediÄŸi iÃ§in Ã¶zellikle tek makine Ã¼zerinde Ã§alÄ±ÅŸan senaryolarda **azami performans ve gÃ¼venlik** (dÄ±ÅŸ saldÄ±rÄ± yÃ¼zeyinin olmamasÄ± nedeniyle) sunar.
+Taşıma katmanının soyutlanmasıyla gelen bir diğer avantaj, **güvenli iletişim ve kimlik doğrulama konusunda standartların yeniden kullanılmasıdır**. MCP, uzak sunucularla haberleşirken HTTPS üzerinden çalışarak TLS şifrelemesini devreye sokabilmekte ve HTTP’nin oturmuş kimlik doğrulama yöntemlerini (OAuth erişim tokenları, API anahtarları, vb.) aynen kullanabilmektedir. Bu, protokolün güvenlik konusunda güvenilir ve test edilmiş yöntemlerden faydalanmasını sağlar. Örneğin, Anthropic varsayılan olarak MCP yetkilendirmesi için OAuth 2.0 tabanlı bir token mekanizmasını öngörmüştür. Son kullanıcı açısından, MCP trafikleri tıpkı bir web trafiği gibi güvenli kanaldan akabildiği için ağ dinlemesi veya benzeri riskler azaltılmaktadır. Öte yandan yerel taşıma seçeneği (STDIO), ağ üzerinden veri geçirmediği için özellikle tek makine üzerinde çalışan senaryolarda **azami performans ve güvenlik** (dış saldırı yüzeyinin olmaması nedeniyle) sunar.
 
-Ã–zetle, MCPâ€™nin uygulama katmanÄ±nda konumlanmasÄ± ve altÄ±ndaki taÅŸÄ±ma katmanÄ±nÄ± esnek tutmasÄ± protokolÃ¼ geniÅŸ bir kullanÄ±m yelpazesinde pratik hale getirmektedir. Bu sayede hem *platform baÄŸÄ±msÄ±zlÄ±ÄŸÄ±* hem de *gÃ¼venlik ve performans* aÃ§Ä±sÄ±ndan geliÅŸtiricilere Ã¶nemli kolaylÄ±klar saÄŸlar.
+Özetle, MCP’nin uygulama katmanında konumlanması ve altındaki taşıma katmanını esnek tutması protokolü geniş bir kullanım yelpazesinde pratik hale getirmektedir. Bu sayede hem *platform bağımsızlığı* hem de *güvenlik ve performans* açısından geliştiricilere önemli kolaylıklar sağlar.
 
-### MCP'nin AÃ§Ä±k Kaynak YapÄ±sÄ±nÄ±n GÃ¼venliÄŸe Etkileri
+### MCP'nin Açık Kaynak Yapısının Güvenliğe Etkileri
 
-MCP protokolÃ¼nÃ¼n **aÃ§Ä±k kaynak** olmasÄ±, gÃ¼venlik aÃ§Ä±sÄ±ndan Ã§ift yÃ¶nlÃ¼ etkilere sahiptir. Olumlu tarafta, protokolÃ¼n kaynak kodu ve spesifikasyonlarÄ±nÄ±n aÃ§Ä±k olmasÄ±, geniÅŸ bir topluluk tarafÄ±ndan incelenebilmesini ve katkÄ± yapÄ±labilmesini mÃ¼mkÃ¼n kÄ±lar. Nitekim MCP hÄ±zla popÃ¼lerlik kazanÄ±rken, Ã§eÅŸitli gÃ¼venlik araÅŸtÄ±rmacÄ±larÄ± ve ÅŸirketler de protokolÃ¼ mercek altÄ±na almÄ±ÅŸtÄ±r. Bu kolektif inceleme sayesinde protokoldeki potansiyel zayÄ±flÄ±klar erken aÅŸamada tespit edilip dÃ¼zeltilebilmektedir. Topluluk Ã¼yeleri mevcut yetkilendirme mekanizmasÄ±nÄ±n kurumsal uygulamalarla Ã§eliÅŸen noktalarÄ±nÄ± fark etmiÅŸ ve yetkilendirme spesifikasyonunun iyileÅŸtirilmesi iÃ§in giriÅŸimde bulunmuÅŸtur. Bu sayede, protokol geliÅŸtikÃ§e gÃ¼venlik boyutunda da gÃ¼ncel en iyi uygulamalarla uyumlu hale gelmesi saÄŸlanmaktadÄ±r.
+MCP protokolünün **açık kaynak** olması, güvenlik açısından çift yönlü etkilere sahiptir. Olumlu tarafta, protokolün kaynak kodu ve spesifikasyonlarının açık olması, geniş bir topluluk tarafından incelenebilmesini ve katkı yapılabilmesini mümkün kılar. Nitekim MCP hızla popülerlik kazanırken, çeşitli güvenlik araştırmacıları ve şirketler de protokolü mercek altına almıştır. Bu kolektif inceleme sayesinde protokoldeki potansiyel zayıflıklar erken aşamada tespit edilip düzeltilebilmektedir. Topluluk üyeleri mevcut yetkilendirme mekanizmasının kurumsal uygulamalarla çelişen noktalarını fark etmiş ve yetkilendirme spesifikasyonunun iyileştirilmesi için girişimde bulunmuştur. Bu sayede, protokol geliştikçe güvenlik boyutunda da güncel en iyi uygulamalarla uyumlu hale gelmesi sağlanmaktadır.
 
-AÃ§Ä±k kaynaÄŸÄ±n bir diÄŸer avantajÄ±, *gÃ¼venlikte ÅŸeffaflÄ±k* saÄŸlamasÄ±dÄ±r. MCP ekosistemindeki istemci ve sunucu uygulamalarÄ± aÃ§Ä±k kaynak kodlu olduÄŸu iÃ§in, geliÅŸtiriciler veya kurumlar bu kodlarÄ± inceleyerek iÃ§lerinde zararlÄ± bir iÅŸlev olup olmadÄ±ÄŸÄ±nÄ± denetleyebilir. KapalÄ± kutu bir yazÄ±lÄ±ma kÄ±yasla, aÃ§Ä±k kodlu bir MCP sunucusunun ne yaptÄ±ÄŸÄ± gÃ¶rÃ¼lebilir olduÄŸu iÃ§in sÃ¼rpriz istenmeyen davranÄ±ÅŸlar riski teorik olarak daha dÃ¼ÅŸÃ¼ktÃ¼r. DahasÄ±, ekosistemdeki popÃ¼ler MCP bileÅŸenleri genellikle dijital imza ile yayÄ±nlanmakta veya bÃ¼tÃ¼nlÃ¼k kontrolÃ¼ne tabi tutulmaktadÄ±r; bu da koda dÄ±ÅŸarÄ±dan zararlÄ± bir mÃ¼dahale yapÄ±lmadÄ±ÄŸÄ±nÄ± doÄŸrulamayÄ± mÃ¼mkÃ¼n kÄ±lar. GeliÅŸtiricilerin de kendi yayÄ±nladÄ±klarÄ± MCP sunucularÄ±nÄ± imzalamalarÄ± ve kullanÄ±cÄ±larÄ±n bu imzalarÄ± doÄŸrulamalarÄ± tavsiye edilmektedir.
+Açık kaynağın bir diğer avantajı, *güvenlikte şeffaflık* sağlamasıdır. MCP ekosistemindeki istemci ve sunucu uygulamaları açık kaynak kodlu olduğu için, geliştiriciler veya kurumlar bu kodları inceleyerek içlerinde zararlı bir işlev olup olmadığını denetleyebilir. Kapalı kutu bir yazılıma kıyasla, açık kodlu bir MCP sunucusunun ne yaptığı görülebilir olduğu için sürpriz istenmeyen davranışlar riski teorik olarak daha düşüktür. Dahası, ekosistemdeki popüler MCP bileşenleri genellikle dijital imza ile yayınlanmakta veya bütünlük kontrolüne tabi tutulmaktadır; bu da koda dışarıdan zararlı bir müdahale yapılmadığını doğrulamayı mümkün kılar. Geliştiricilerin de kendi yayınladıkları MCP sunucularını imzalamaları ve kullanıcıların bu imzaları doğrulamaları tavsiye edilmektedir.
 
-Ã–te yandan, aÃ§Ä±k kaynak olmanÄ±n getirdiÄŸi bazÄ± **gÃ¼venlik riskleri** de vardÄ±r. Her ÅŸeyden Ã¶nce, MCP protokolÃ¼ tamamen aÃ§Ä±k bir ekosistem olduÄŸundan, kÃ¶tÃ¼ niyetli aktÃ¶rler de protokolÃ¼ kullanarak zararlÄ± MCP sunucularÄ± geliÅŸtirebilir ve bunlarÄ± topluluk iÃ§inde paylaÅŸabilir. Ã–rneÄŸin, bir saldÄ±rgan ilk bakÄ±ÅŸta yararlÄ± gÃ¶rÃ¼nen bir MCP sunucusu (belki bir hava durumu aracÄ± veya takvim aracÄ±) yayÄ±nlayÄ±p kullanÄ±cÄ±larÄ± bunu kurmaya ikna edebilir; ancak daha sonra bir gÃ¼ncelleme ile bu sunucuya gizlice hassas bilgileri toplayan veya yetkisiz komutlar Ã§alÄ±ÅŸtÄ±ran iÅŸlevler ekleyebilir. Bu tÃ¼r **â€œaraÃ§ enjeksiyonuâ€** diyebileceÄŸimiz senaryolarda, aÃ§Ä±k kaynak kod baÅŸlangÄ±Ã§ta temiz olsa bile ileride kasÄ±tlÄ± olarak suistimal edilebilir hale getirilebilir. Benzer ÅŸekilde, sunucunun tanÄ±ttÄ±ÄŸÄ± araÃ§larÄ±n ismini ve tanÄ±mÄ±nÄ± yanÄ±ltÄ±cÄ± seÃ§mek de mÃ¼mkÃ¼n olduÄŸundan, kÃ¶tÃ¼ niyetli bir geliÅŸtirici masum gÃ¶rÃ¼nen bir aracÄ± aslÄ±nda farklÄ± ve tehlikeli iÅŸler yapmak iÃ§in tasarlayabilir. AÃ§Ä±k kaynak dÃ¼nyasÄ±nda kullanÄ±cÄ±larÄ±n her bulduklarÄ± projeye gÃ¼venmemeleri, Ã¶zellikle de MCP gibi *kod Ã§alÄ±ÅŸtÄ±rma yeteneÄŸi olan* sunucular sÃ¶z konusuysa, son derece kritiktir.
+Öte yandan, açık kaynak olmanın getirdiği bazı **güvenlik riskleri** de vardır. Her şeyden önce, MCP protokolü tamamen açık bir ekosistem olduğundan, kötü niyetli aktörler de protokolü kullanarak zararlı MCP sunucuları geliştirebilir ve bunları topluluk içinde paylaşabilir. Örneğin, bir saldırgan ilk bakışta yararlı görünen bir MCP sunucusu (belki bir hava durumu aracı veya takvim aracı) yayınlayıp kullanıcıları bunu kurmaya ikna edebilir; ancak daha sonra bir güncelleme ile bu sunucuya gizlice hassas bilgileri toplayan veya yetkisiz komutlar çalıştıran işlevler ekleyebilir. Bu tür **“araç enjeksiyonu”** diyebileceğimiz senaryolarda, açık kaynak kod başlangıçta temiz olsa bile ileride kasıtlı olarak suistimal edilebilir hale getirilebilir. Benzer şekilde, sunucunun tanıttığı araçların ismini ve tanımını yanıltıcı seçmek de mümkün olduğundan, kötü niyetli bir geliştirici masum görünen bir aracı aslında farklı ve tehlikeli işler yapmak için tasarlayabilir. Açık kaynak dünyasında kullanıcıların her buldukları projeye güvenmemeleri, özellikle de MCP gibi *kod çalıştırma yeteneği olan* sunucular söz konusuysa, son derece kritiktir.
 
-AÃ§Ä±k kaynaÄŸÄ±n bir diÄŸer zorluÄŸu da **tedarik zinciri gÃ¼venliÄŸi** ile ilgilidir. MCP istemci ve sunucularÄ± da sonuÃ§ta yazÄ±lÄ±m bileÅŸenleridir ve paket yÃ¶netim sistemleri Ã¼zerinden daÄŸÄ±tÄ±lÄ±r. SaldÄ±rganlar popÃ¼ler MCP paketlerinin isimlerini taklit eden (typosquatting) zararlÄ± paketler yayÄ±nlayabilir veya geliÅŸtiricilerin hesaplarÄ±nÄ± ele geÃ§irip zararlÄ± gÃ¼ncellemeler Ã§Ä±karabilir. Bu risk, genel olarak tÃ¼m aÃ§Ä±k kaynak projelerinde mevcuttur ve MCP de bir istisna deÄŸildir. Nitekim, MCP bileÅŸenlerinin gÃ¼venliÄŸi iÃ§in tavsiye edilen uygulamalar arasÄ±nda *Statik Kod Analizi (SAST)* ve *YazÄ±lÄ±m BileÅŸeni Analizi (SCA)* araÃ§larÄ±nÄ±n kullanÄ±lmasÄ±, baÄŸÄ±mlÄ±lÄ±klarÄ±n bilinen zafiyetlere karÅŸÄ± taranmasÄ± gibi sÃ¼reÃ§ler sayÄ±lmaktadÄ±r. Proje geliÅŸtirme sÃ¼reÃ§lerinde bu tÃ¼r gÃ¼venlik denetimlerinin uygulanmasÄ±, aÃ§Ä±k kaynak olmanÄ±n getirdiÄŸi riskleri azaltmaya yardÄ±mcÄ± olur.
+Açık kaynağın bir diğer zorluğu da **tedarik zinciri güvenliği** ile ilgilidir. MCP istemci ve sunucuları da sonuçta yazılım bileşenleridir ve paket yönetim sistemleri üzerinden dağıtılır. Saldırganlar popüler MCP paketlerinin isimlerini taklit eden (typosquatting) zararlı paketler yayınlayabilir veya geliştiricilerin hesaplarını ele geçirip zararlı güncellemeler çıkarabilir. Bu risk, genel olarak tüm açık kaynak projelerinde mevcuttur ve MCP de bir istisna değildir. Nitekim, MCP bileşenlerinin güvenliği için tavsiye edilen uygulamalar arasında *Statik Kod Analizi (SAST)* ve *Yazılım Bileşeni Analizi (SCA)* araçlarının kullanılması, bağımlılıkların bilinen zafiyetlere karşı taranması gibi süreçler sayılmaktadır. Proje geliştirme süreçlerinde bu tür güvenlik denetimlerinin uygulanması, açık kaynak olmanın getirdiği riskleri azaltmaya yardımcı olur.
 
-SonuÃ§ olarak, MCPâ€™nin aÃ§Ä±k kaynak yapÄ±sÄ± gÃ¼venlikte hem bir **imkan** hem de bir **sorumluluk** doÄŸurmaktadÄ±r. DoÄŸru yÃ¶netildiÄŸinde, geniÅŸ bir katÄ±lÄ±mcÄ± kitlesinin katkÄ±sÄ±yla daha gÃ¼venli bir protokol geliÅŸimi mÃ¼mkÃ¼n olmakta; ancak bu aÃ§Ä±klÄ±k aynÄ± zamanda suistimale aÃ§Ä±k bir ekosistem yarattÄ±ÄŸÄ± iÃ§in, kullanÄ±cÄ±larÄ±n ve geliÅŸtiricilerin gÃ¼venlik farkÄ±ndalÄ±ÄŸÄ±nÄ±n yÃ¼ksek olmasÄ± gerekmektedir.
+Sonuç olarak, MCP’nin açık kaynak yapısı güvenlikte hem bir **imkan** hem de bir **sorumluluk** doğurmaktadır. Doğru yönetildiğinde, geniş bir katılımcı kitlesinin katkısıyla daha güvenli bir protokol gelişimi mümkün olmakta; ancak bu açıklık aynı zamanda suistimale açık bir ekosistem yarattığı için, kullanıcıların ve geliştiricilerin güvenlik farkındalığının yüksek olması gerekmektedir.
 
-### Potansiyel SaldÄ±rÄ± SenaryolarÄ±
+### Potansiyel Saldırı Senaryoları
 
-MCP protokolÃ¼ ve onu kullanan uygulamalar, tasarÄ±m itibariyle Ã§eÅŸitli saldÄ±rÄ± tÃ¼rlerine maruz kalabilir. Bu bÃ¶lÃ¼mde, Ã¶zellikle **Ortadaki Adam (Man-in-the-Middle)**, **Replay (Yeniden Oynatma)** ve **Enjeksiyon** saldÄ±rÄ± vektÃ¶rleri Ã¼zerinde durulacaktÄ±r:
+MCP protokolü ve onu kullanan uygulamalar, tasarım itibariyle çeşitli saldırı türlerine maruz kalabilir. Bu bölümde, özellikle **Ortadaki Adam (Man-in-the-Middle)**, **Replay (Yeniden Oynatma)** ve **Enjeksiyon** saldırı vektörleri üzerinde durulacaktır:
 
-* **Ortadaki Adam SaldÄ±rÄ±sÄ± (MITM):** Bir MITM saldÄ±rÄ±sÄ±nda, saldÄ±rgan istemci ile sunucu arasÄ±ndaki trafiÄŸi gizlice dinleyip deÄŸiÅŸtirebilir. MCP, uzak sunucu baÄŸlantÄ±larÄ±nda HTTP tabanlÄ± iletiÅŸim kullandÄ±ÄŸÄ± iÃ§in, **ÅŸifrelenmemiÅŸ bir baÄŸlantÄ± (HTTP)** Ã¼zerinden iletiÅŸim kurulursa ciddi bir MITM riski oluÅŸur. Ã–rneÄŸin, yerel aÄŸda bir saldÄ±rgan MCP istemcisinin sunucuya giden trafiÄŸini yakalayÄ±p baÅŸka bir sunucuya yÃ¶nlendirebilir veya iÃ§erik enjeksiyonu yapabilir. Bu nedenle MCP kullanÄ±mÄ±nda **TLS ÅŸifrelemesi (HTTPS)** ÅŸarttÄ±r; aksi halde oturum aÃ§Ä±lÄ±ÅŸ bilgilerinden, iletilen baÄŸlam verisine kadar her ÅŸey Ã¼Ã§Ã¼ncÃ¼ ÅŸahÄ±slarca gÃ¶rÃ¼lebilir veya deÄŸiÅŸtirilebilir. MITM sadece gizli dinleme deÄŸil, aynÄ± zamanda istemci ile sunucu arasÄ±na girerek sahte yanÄ±tlar verme veya istemciden gelen isteÄŸi bloklama gibi etkiler de yaratabilir. Uzak sunucularla iletiÅŸimde HTTPS kullanmak ve sunucu sertifikasÄ±nÄ± doÄŸrulamak, bu tÃ¼r saldÄ±rÄ±larÄ±n Ã¶nlenmesinde temel Ã¶nlemdir.
+* **Ortadaki Adam Saldırısı (MITM):** Bir MITM saldırısında, saldırgan istemci ile sunucu arasındaki trafiği gizlice dinleyip değiştirebilir. MCP, uzak sunucu bağlantılarında HTTP tabanlı iletişim kullandığı için, **şifrelenmemiş bir bağlantı (HTTP)** üzerinden iletişim kurulursa ciddi bir MITM riski oluşur. Örneğin, yerel ağda bir saldırgan MCP istemcisinin sunucuya giden trafiğini yakalayıp başka bir sunucuya yönlendirebilir veya içerik enjeksiyonu yapabilir. Bu nedenle MCP kullanımında **TLS şifrelemesi (HTTPS)** şarttır; aksi halde oturum açılış bilgilerinden, iletilen bağlam verisine kadar her şey üçüncü şahıslarca görülebilir veya değiştirilebilir. MITM sadece gizli dinleme değil, aynı zamanda istemci ile sunucu arasına girerek sahte yanıtlar verme veya istemciden gelen isteği bloklama gibi etkiler de yaratabilir. Uzak sunucularla iletişimde HTTPS kullanmak ve sunucu sertifikasını doğrulamak, bu tür saldırıların önlenmesinde temel önlemdir.
 
-* **Replay SaldÄ±rÄ±larÄ±:** Replay (yeniden oynatma) saldÄ±rÄ±sÄ±nda, aÄŸ trafiÄŸini yakalayan bir saldÄ±rgan daha sonra bu trafiÄŸi tekrar gÃ¶ndererek sistemi kandÄ±rmaya Ã§alÄ±ÅŸÄ±r. MCP protokolÃ¼nde istemci-sunucu mesajlarÄ± genellikle belirli bir isteÄŸe yanÄ±t iliÅŸkisi iÃ§inde olduÄŸundan ve protokol durumsal bir oturum yapÄ±sÄ± barÄ±ndÄ±rdÄ±ÄŸÄ±ndan, klasik anlamda replay yapmanÄ±n etkisi sÄ±nÄ±rlÄ± olabilir. Ancak Ã¶zellikle kimlik doÄŸrulama veya yetki bilgilerinin tekrar kullanÄ±lmasÄ± riski her zaman vardÄ±r. Ã–rneÄŸin bir saldÄ±rgan, bir MCP isteÄŸini Ã¼zerindeki OAuth eriÅŸim jetonu ile birlikte ele geÃ§irirse, bu isteÄŸi deÄŸiÅŸtirip yeniden gÃ¶ndermek suretiyle istenmeyen iÅŸlemler yaptÄ±rabilir. MCP spesifikasyonunda versiyon pazarlÄ±ÄŸÄ± ve oturum baÅŸlatma mekanizmalarÄ± olsa da, **anti-replay iÃ§in Ã¶zel bir nonce veya zaman damgasÄ± kullandÄ±ÄŸÄ±na dair** aÃ§Ä±k bir bilgi olmayabilir. DolayÄ±sÄ±yla replay riskinin esasen **taÅŸÄ±ma katmanÄ±nÄ±n gÃ¼venliÄŸi** ile bertaraf edildiÄŸini varsayabiliriz (Ã¶rn. TLS iÃ§indeki oturum kimliÄŸi ve kÄ±sa Ã¶mÃ¼rlÃ¼ token kullanÄ±mÄ±). Yine de, MCP sunucularÄ±nÄ±n kritik iÅŸlemler iÃ§in isteklerin tekilliÄŸini kontrol etmesi veya aynÄ± tokenâ€™Ä±n art arda kullanÄ±mÄ±nÄ± kÄ±sÄ±tlamasÄ± gibi Ã¶nlemler dÃ¼ÅŸÃ¼nÃ¼lebilir. SonuÃ§ itibariyle, replay saldÄ±rÄ±larÄ±na karÅŸÄ± **en iyi savunma**, trafiÄŸin ÅŸifrelenmesi ve geÃ§erlilik sÃ¼resi sÄ±nÄ±rlÄ±, tek seferlik yetkilendirme jetonlarÄ± kullanÄ±lmasÄ±dÄ±r.
+* **Replay Saldırıları:** Replay (yeniden oynatma) saldırısında, ağ trafiğini yakalayan bir saldırgan daha sonra bu trafiği tekrar göndererek sistemi kandırmaya çalışır. MCP protokolünde istemci-sunucu mesajları genellikle belirli bir isteğe yanıt ilişkisi içinde olduğundan ve protokol durumsal bir oturum yapısı barındırdığından, klasik anlamda replay yapmanın etkisi sınırlı olabilir. Ancak özellikle kimlik doğrulama veya yetki bilgilerinin tekrar kullanılması riski her zaman vardır. Örneğin bir saldırgan, bir MCP isteğini üzerindeki OAuth erişim jetonu ile birlikte ele geçirirse, bu isteği değiştirip yeniden göndermek suretiyle istenmeyen işlemler yaptırabilir. MCP spesifikasyonunda versiyon pazarlığı ve oturum başlatma mekanizmaları olsa da, **anti-replay için özel bir nonce veya zaman damgası kullandığına dair** açık bir bilgi olmayabilir. Dolayısıyla replay riskinin esasen **taşıma katmanının güvenliği** ile bertaraf edildiğini varsayabiliriz (örn. TLS içindeki oturum kimliği ve kısa ömürlü token kullanımı). Yine de, MCP sunucularının kritik işlemler için isteklerin tekilliğini kontrol etmesi veya aynı token’ın art arda kullanımını kısıtlaması gibi önlemler düşünülebilir. Sonuç itibariyle, replay saldırılarına karşı **en iyi savunma**, trafiğin şifrelenmesi ve geçerlilik süresi sınırlı, tek seferlik yetkilendirme jetonları kullanılmasıdır.
 
-* **Enjeksiyon SaldÄ±rÄ±larÄ±:** MCP ekosisteminde *enjeksiyon* kavramÄ± birden fazla boyutta karÅŸÄ±mÄ±za Ã§Ä±kar:
+* **Enjeksiyon Saldırıları:** MCP ekosisteminde *enjeksiyon* kavramı birden fazla boyutta karşımıza çıkar:
 
-  * **Komut Enjeksiyonu:** BirÃ§ok MCP sunucusu, alt seviyede kabuk komutlarÄ± veya sistem Ã§aÄŸrÄ±larÄ± Ã§alÄ±ÅŸtÄ±rarak gÃ¶revlerini yerine getirir (Ã¶zellikle yerel sunucular). EÄŸer sunucu, kullanÄ±cÄ±dan veya LLMâ€™den gelen girdileri uygun ÅŸekilde filtrelemez ve doÄŸrudan bir komut satÄ±rÄ±na aktarÄ±rsa, saldÄ±rganlar bu durumu **komut enjeksiyonu** iÃ§in kullanabilir. Ã–rneÄŸin, bazÄ± MCP sunucu kodlarÄ±nda, kullanÄ±cÄ± bildirim baÅŸlÄ±ÄŸÄ± oluÅŸturulurken gelen deÄŸerin doÄŸrudan `notify-send` komutuna parametre verildiÄŸi gÃ¶rÃ¼lebilir; burada yeterli denetim olmadÄ±ÄŸÄ±ndan potansiyel bir komut enjeksiyonu aÃ§Ä±klÄ±ÄŸÄ± oluÅŸabilir. KÃ¶tÃ¼ niyetli bir aktÃ¶r, Ã¶zel hazÄ±rlanmÄ±ÅŸ girdilerle bu aÃ§Ä±ÄŸÄ± tetikleyerek sunucunun yetkileriyle rastgele komutlar Ã§alÄ±ÅŸtÄ±rabilir. Bu tÃ¼r vakalar, Ã¶zellikle yerel MCP sunucularÄ±nÄ±n kullanÄ±cÄ± hesabÄ± haklarÄ±yla Ã§alÄ±ÅŸtÄ±ÄŸÄ± senaryolarda **tam sistem tehlikeye atÄ±lmasÄ±** ile sonuÃ§lanabilir. DolayÄ±sÄ±yla MCP sunucusu geliÅŸtiricilerinin, Ã§alÄ±ÅŸtÄ±rdÄ±klarÄ± komutlarÄ± ve bu komutlara verdikleri argÃ¼manlarÄ± Ã§ok sÄ±kÄ± ÅŸekilde denetlemeleri, gerekirse girilen deÄŸerleri beyaz liste yÃ¶ntemiyle filtrelemeleri kritiktir. AyrÄ±ca, yerel sunucularÄ±n bir **sandbox (korunaklÄ± ortam)** iÃ§inde, eriÅŸim izinleri kÄ±sÄ±tlanmÄ±ÅŸ ÅŸekilde Ã§alÄ±ÅŸtÄ±rÄ±lmasÄ± Ã¶nerilmektedir.
-  * **Prompt Enjeksiyonu:** Bu saldÄ±rÄ± tÃ¼rÃ¼ doÄŸrudan protokolÃ¼n teknik altyapÄ±sÄ±nÄ± deÄŸil, LLMâ€™nin zafiyetini hedef alÄ±r ancak MCP baÄŸlamÄ±nda Ã¶zel bir Ã¶nem kazanÄ±r. MCP, LLMâ€™nin dÄ±ÅŸ araÃ§larÄ± kullanmasÄ±na olanak saÄŸladÄ±ÄŸÄ± iÃ§in, kÃ¶tÃ¼ niyetli bir yÃ¶nlendirme (prompt) ile LLMâ€™yi tehlikeli bir aracÄ± Ã§alÄ±ÅŸtÄ±rmaya ikna etmek mÃ¼mkÃ¼n hale gelebilir. Ã–rneÄŸin, bir saldÄ±rgan kullanÄ±cÄ±yÄ± kandÄ±rarak MCP istemcisine girdiÄŸi komutun iÃ§ine gizlenmiÅŸ zararlÄ± bir talimat koydurabilir. LLM bu girdiyle Ã§alÄ±ÅŸÄ±rken, gÃ¶rÃ¼nÃ¼rde masum gÃ¶rÃ¼nen isteÄŸi gerÃ§ekleÅŸtirmenin yanÄ±nda saldÄ±rganÄ±n arzusuyla ek bir iÅŸlem de baÅŸlatabilir (Ã¶rneÄŸin, â€œtalep edilen yeni kullanÄ±cÄ± hesabÄ±nÄ± oluÅŸturmanÄ±nâ€ yanÄ± sÄ±ra bir de saldÄ±rgan iÃ§in yÃ¼ksek yetkili bir hesap oluÅŸturma). Bu tÃ¼r prompt enjeksiyonlarÄ±, Ã¶zellikle LLM yanÄ±tlarÄ±na koÅŸulsuz gÃ¼venilip kullanÄ±cÄ± onayÄ± aranmadan eyleme dÃ¶kÃ¼ldÃ¼ÄŸÃ¼nde ciddi hasarlara yol aÃ§abilir. Bu nedenle, MCP istemcileri kritik iÅŸlemleri gerÃ§ekleÅŸtirmeden Ã¶nce mÃ¼mkÃ¼n olduÄŸunca **kullanÄ±cÄ±dan onay almalÄ±dÄ±r** veya LLM'nin yapabileceklerini kÄ±sÄ±tlayacak politikalar uygulamalÄ±dÄ±r.
-  * **AraÃ§ (Tool) Enjeksiyonu:** YukarÄ±da aÃ§Ä±k kaynak riskleri kÄ±smÄ±nda deÄŸinilen senaryonun bir parÃ§asÄ± olarak, MCP sunucularÄ±nÄ±n tanÄ±ttÄ±ÄŸÄ± araÃ§lar suistimal edilebilir. Bu saldÄ±rÄ±, bir bakÄ±ma *supply chain* sorunuyla birleÅŸir; bir saldÄ±rgan, saÄŸladÄ±ÄŸÄ± aracÄ±n masum fonksiyonunu daha sonra gÃ¼ncelleyerek kullanÄ±cÄ±ya zarar verecek hale getirebilir. Ã–rneÄŸin, baÅŸlangÄ±Ã§ta sadece hava durumu bilgisini dÃ¶ndÃ¼ren bir araÃ§, ileride gÃ¼ncellemeyle kullanÄ±cÄ± verilerini Ã§alan bir kod parÃ§asÄ±na dÃ¶nÃ¼ÅŸtÃ¼rÃ¼lebilir. LLM, aracÄ±n aÃ§Ä±klamasÄ±na gÃ¼venerek onu kullanacaÄŸÄ± iÃ§in, bu durumda saldÄ±rgan arka planda kÃ¶tÃ¼ faaliyetine devam ederken, kullanÄ±cÄ± ve istemci tarafÄ± yalnÄ±zca aracÄ±n normal Ã§Ä±ktÄ±sÄ±nÄ± gÃ¶rÃ¼p aldatÄ±labilir. Bu nedenle, MCP istemcilerinin kurulu sunucularÄ±n kod veya davranÄ±ÅŸ deÄŸiÅŸikliklerini izleyebilmesi, versiyon kilitleme (*pinning*) yaparak beklenmedik gÃ¼ncellemeleri engellemesi ve kullanÄ±cÄ±yÄ± bilgilendirmesi Ã¶nemli bir koruma yÃ¶ntemidir.
+  * **Komut Enjeksiyonu:** Birçok MCP sunucusu, alt seviyede kabuk komutları veya sistem çağrıları çalıştırarak görevlerini yerine getirir (özellikle yerel sunucular). Eğer sunucu, kullanıcıdan veya LLM’den gelen girdileri uygun şekilde filtrelemez ve doğrudan bir komut satırına aktarırsa, saldırganlar bu durumu **komut enjeksiyonu** için kullanabilir. Örneğin, bazı MCP sunucu kodlarında, kullanıcı bildirim başlığı oluşturulurken gelen değerin doğrudan `notify-send` komutuna parametre verildiği görülebilir; burada yeterli denetim olmadığından potansiyel bir komut enjeksiyonu açıklığı oluşabilir. Kötü niyetli bir aktör, özel hazırlanmış girdilerle bu açığı tetikleyerek sunucunun yetkileriyle rastgele komutlar çalıştırabilir. Bu tür vakalar, özellikle yerel MCP sunucularının kullanıcı hesabı haklarıyla çalıştığı senaryolarda **tam sistem tehlikeye atılması** ile sonuçlanabilir. Dolayısıyla MCP sunucusu geliştiricilerinin, çalıştırdıkları komutları ve bu komutlara verdikleri argümanları çok sıkı şekilde denetlemeleri, gerekirse girilen değerleri beyaz liste yöntemiyle filtrelemeleri kritiktir. Ayrıca, yerel sunucuların bir **sandbox (korunaklı ortam)** içinde, erişim izinleri kısıtlanmış şekilde çalıştırılması önerilmektedir.
+  * **Prompt Enjeksiyonu:** Bu saldırı türü doğrudan protokolün teknik altyapısını değil, LLM’nin zafiyetini hedef alır ancak MCP bağlamında özel bir önem kazanır. MCP, LLM’nin dış araçları kullanmasına olanak sağladığı için, kötü niyetli bir yönlendirme (prompt) ile LLM’yi tehlikeli bir aracı çalıştırmaya ikna etmek mümkün hale gelebilir. Örneğin, bir saldırgan kullanıcıyı kandırarak MCP istemcisine girdiği komutun içine gizlenmiş zararlı bir talimat koydurabilir. LLM bu girdiyle çalışırken, görünürde masum görünen isteği gerçekleştirmenin yanında saldırganın arzusuyla ek bir işlem de başlatabilir (örneğin, “talep edilen yeni kullanıcı hesabını oluşturmanın” yanı sıra bir de saldırgan için yüksek yetkili bir hesap oluşturma). Bu tür prompt enjeksiyonları, özellikle LLM yanıtlarına koşulsuz güvenilip kullanıcı onayı aranmadan eyleme döküldüğünde ciddi hasarlara yol açabilir. Bu nedenle, MCP istemcileri kritik işlemleri gerçekleştirmeden önce mümkün olduğunca **kullanıcıdan onay almalıdır** veya LLM'nin yapabileceklerini kısıtlayacak politikalar uygulamalıdır.
+  * **Araç (Tool) Enjeksiyonu:** Yukarıda açık kaynak riskleri kısmında değinilen senaryonun bir parçası olarak, MCP sunucularının tanıttığı araçlar suistimal edilebilir. Bu saldırı, bir bakıma *supply chain* sorunuyla birleşir; bir saldırgan, sağladığı aracın masum fonksiyonunu daha sonra güncelleyerek kullanıcıya zarar verecek hale getirebilir. Örneğin, başlangıçta sadece hava durumu bilgisini döndüren bir araç, ileride güncellemeyle kullanıcı verilerini çalan bir kod parçasına dönüştürülebilir. LLM, aracın açıklamasına güvenerek onu kullanacağı için, bu durumda saldırgan arka planda kötü faaliyetine devam ederken, kullanıcı ve istemci tarafı yalnızca aracın normal çıktısını görüp aldatılabilir. Bu nedenle, MCP istemcilerinin kurulu sunucuların kod veya davranış değişikliklerini izleyebilmesi, versiyon kilitleme (*pinning*) yaparak beklenmedik güncellemeleri engellemesi ve kullanıcıyı bilgilendirmesi önemli bir koruma yöntemidir.
 
-YukarÄ±daki saldÄ±rÄ± tÃ¼rleri MCP protokolÃ¼nÃ¼n farklÄ± bileÅŸenlerini hedef almakla birlikte, ortak nokta olarak *MCP kullanÄ±mÄ±nda gÃ¼venlik bilincinin Ã¶nemini* ortaya koymaktadÄ±r. Gerek altyapÄ±sal (Ã¶r. MITM, replay) gerek uygulama seviyesinde (enjeksiyon) olsun, protokolÃ¼ kullanÄ±rken uygun Ã¶nlemler alÄ±nmadÄ±ÄŸÄ± takdirde istenmeyen sonuÃ§larla karÅŸÄ±laÅŸmak olasÄ±dÄ±r.
+Yukarıdaki saldırı türleri MCP protokolünün farklı bileşenlerini hedef almakla birlikte, ortak nokta olarak *MCP kullanımında güvenlik bilincinin önemini* ortaya koymaktadır. Gerek altyapısal (ör. MITM, replay) gerek uygulama seviyesinde (enjeksiyon) olsun, protokolü kullanırken uygun önlemler alınmadığı takdirde istenmeyen sonuçlarla karşılaşmak olasıdır.
 
-### MCP ProtokolÃ¼ndeki Mevcut GÃ¼venlik Ã–nlemleri ve DeÄŸerlendirmesi
+### MCP Protokolündeki Mevcut Güvenlik Önlemleri ve Değerlendirmesi
 
-Anthropic (soruda bahsedilen adÄ±yla *Antopic*), MCP protokolÃ¼nÃ¼ tasarlarken bazÄ± temel gÃ¼venlik Ã¶nlemlerini dahil etmiÅŸtir. BunlarÄ±n baÅŸÄ±nda, protokolÃ¼n **kimlik doÄŸrulama ve yetkilendirme mekanizmasÄ±** gelir. MCP, uzak sunucular iÃ§in OAuth 2.0 tabanlÄ± eriÅŸim tokenâ€™larÄ± kullanÄ±lmasÄ±nÄ± Ã¶nererek, her istemci-sunucu baÄŸlantÄ±sÄ±nÄ±n bir yetki kontrolÃ¼ne tabi olmasÄ±nÄ± saÄŸlamaya Ã§alÄ±ÅŸÄ±r. Bu sayede, her MCP sunucusu eylemini bir kullanÄ±cÄ± veya uygulama adÄ±na gerÃ§ekleÅŸtirecekse, Ã¶nceden alÄ±nmÄ±ÅŸ bir eriÅŸim iznine sahip olmasÄ± beklenir. Ancak burada Ã¶nemli bir nokta, mevcut spesifikasyondaki OAuth kullanÄ±m detaylarÄ±nÄ±n her senaryoya uymayabileceÄŸinin ortaya Ã§Ä±kmÄ±ÅŸ olmasÄ±dÄ±r. Topluluktan gelen geri bildirimlere gÃ¶re MCPâ€™nin ilk yetkilendirme tanÄ±mÄ±, kurumsal ortamlardaki bazÄ± modern uygulamalarla Ã§eliÅŸmektedir ve bu konuda resmi spesifikasyonun gÃ¼ncellenmesi gÃ¼ndemdedir. Bu durum, protokolÃ¼n yetkilendirme boyutunda henÃ¼z tam olgunlaÅŸmadÄ±ÄŸÄ±nÄ± ve geliÅŸtirilmeye aÃ§Ä±k yanlar olduÄŸunu gÃ¶stermektedir.
+Anthropic (soruda bahsedilen adıyla *Antopic*), MCP protokolünü tasarlarken bazı temel güvenlik önlemlerini dahil etmiştir. Bunların başında, protokolün **kimlik doğrulama ve yetkilendirme mekanizması** gelir. MCP, uzak sunucular için OAuth 2.0 tabanlı erişim token’ları kullanılmasını önererek, her istemci-sunucu bağlantısının bir yetki kontrolüne tabi olmasını sağlamaya çalışır. Bu sayede, her MCP sunucusu eylemini bir kullanıcı veya uygulama adına gerçekleştirecekse, önceden alınmış bir erişim iznine sahip olması beklenir. Ancak burada önemli bir nokta, mevcut spesifikasyondaki OAuth kullanım detaylarının her senaryoya uymayabileceğinin ortaya çıkmış olmasıdır. Topluluktan gelen geri bildirimlere göre MCP’nin ilk yetkilendirme tanımı, kurumsal ortamlardaki bazı modern uygulamalarla çelişmektedir ve bu konuda resmi spesifikasyonun güncellenmesi gündemdedir. Bu durum, protokolün yetkilendirme boyutunda henüz tam olgunlaşmadığını ve geliştirilmeye açık yanlar olduğunu göstermektedir.
 
-Bir diÄŸer yerleÅŸik gÃ¼venlik Ã¶nlemi, **iletiÅŸimin ÅŸifrelenmesi** ile ilgilidir. Her ne kadar MCP doÄŸrudan â€œÅŸifreleme zorunluluÄŸuâ€nu kendi iÃ§inde dayatmasa da (zira bu genellikle taÅŸÄ±ma katmanÄ±nÄ±n sorumluluÄŸudur), dokÃ¼mantasyon ve topluluk rehberlerinde uzak baÄŸlantÄ±lar iÃ§in TLS destekli HTTPS kullanÄ±lmasÄ±nÄ±n altÄ± Ã§izilir. Ã–zellikle GitHub gibi MCP kullanan platformlar, kendi sunucularÄ± ile istemci arasÄ±ndaki etkileÅŸimlerde gÃ¼venlik iÃ§in ek mekanizmalar uygulamÄ±ÅŸtÄ±r. Ã–rneÄŸin GitHubâ€™Ä±n MCP sunucusu (Copilot ile entegrasyon amaÃ§lÄ±), paylaÅŸÄ±lan depo verilerinde gizli anahtarlarÄ±n aÃ§Ä±ÄŸa Ã§Ä±kmasÄ±nÄ± Ã¶nlemek iÃ§in â€œpush protectionâ€ adlÄ± bir gÃ¼venlik filtresi kullanÄ±r; bu filtre sayesinde MCP Ã¼zerinden gerÃ§ekleÅŸtirilen eylemlerde hassas verilerin sÄ±zmasÄ± engellenir. Bu tÃ¼r Ã¶nlemler MCP protokolÃ¼nÃ¼n parÃ§asÄ± olmasa da, onu kullanan hizmetlerin kendi gÃ¼venlik katmanlarÄ±nÄ± eklediÄŸini gÃ¶stermektedir.
+Bir diğer yerleşik güvenlik önlemi, **iletişimin şifrelenmesi** ile ilgilidir. Her ne kadar MCP doğrudan “şifreleme zorunluluğu”nu kendi içinde dayatmasa da (zira bu genellikle taşıma katmanının sorumluluğudur), dokümantasyon ve topluluk rehberlerinde uzak bağlantılar için TLS destekli HTTPS kullanılmasının altı çizilir. Özellikle GitHub gibi MCP kullanan platformlar, kendi sunucuları ile istemci arasındaki etkileşimlerde güvenlik için ek mekanizmalar uygulamıştır. Örneğin GitHub’ın MCP sunucusu (Copilot ile entegrasyon amaçlı), paylaşılan depo verilerinde gizli anahtarların açığa çıkmasını önlemek için “push protection” adlı bir güvenlik filtresi kullanır; bu filtre sayesinde MCP üzerinden gerçekleştirilen eylemlerde hassas verilerin sızması engellenir. Bu tür önlemler MCP protokolünün parçası olmasa da, onu kullanan hizmetlerin kendi güvenlik katmanlarını eklediğini göstermektedir.
 
-Anthropicâ€™in MCP iÃ§in geliÅŸtirdiÄŸi referans sunucularda da bazÄ± gÃ¼venlik dÃ¼ÅŸÃ¼nceleri mevcuttur. Ã–rneÄŸin, yerel dosya sistemi sunucusu belli bir dizin altÄ±nda eriÅŸime izin vererek bir tÃ¼r *sandbox* yaratmayÄ± hedefler. Ancak yapÄ±lan baÄŸÄ±msÄ±z gÃ¼venlik analizleri, bu yaklaÅŸÄ±mÄ±n kusursuz olmadÄ±ÄŸÄ±nÄ± ortaya koymuÅŸtur. BazÄ± gÃ¼venlik araÅŸtÄ±rmalarÄ±, resmi dosya sistemi MCP sunucusunda dizin atlama veya sembolik baÄŸ (symlink) yoluyla kÄ±sÄ±tlamalarÄ±n atlatÄ±labildiÄŸini ve bunun sunucunun Ã§alÄ±ÅŸtÄ±ÄŸÄ± sistemde daha geniÅŸ eriÅŸimlere yol aÃ§abildiÄŸini gÃ¶stermiÅŸtir. Bu bulgular, Anthropicâ€™in koyduÄŸu gÃ¼venlik Ã¶nlemlerinin (dizin kÄ±sÄ±tlamasÄ± gibi) tek baÅŸÄ±na yeterli olmadÄ±ÄŸÄ±nÄ± gÃ¶stermiÅŸtir. Ã–zellikle LLM tabanlÄ± araÃ§larÄ±n Ã§oÄŸunlukla geliÅŸtirici rahatlÄ±ÄŸÄ± iÃ§in yÃ¼ksek ayrÄ±calÄ±klarla (Ã¶rn. kullanÄ±cÄ± oturumunda veya bazen yÃ¶netici haklarÄ±yla) Ã§alÄ±ÅŸtÄ±rÄ±ldÄ±ÄŸÄ± dÃ¼ÅŸÃ¼nÃ¼lÃ¼rse, bu tip aÃ§Ä±klar kÃ¶tÃ¼ye kullanÄ±ldÄ±ÄŸÄ±nda **sistem bÃ¼tÃ¼nlÃ¼ÄŸÃ¼nÃ¼ ciddi ÅŸekilde tehlikeye atmaktadÄ±r**.
+Anthropic’in MCP için geliştirdiği referans sunucularda da bazı güvenlik düşünceleri mevcuttur. Örneğin, yerel dosya sistemi sunucusu belli bir dizin altında erişime izin vererek bir tür *sandbox* yaratmayı hedefler. Ancak yapılan bağımsız güvenlik analizleri, bu yaklaşımın kusursuz olmadığını ortaya koymuştur. Bazı güvenlik araştırmaları, resmi dosya sistemi MCP sunucusunda dizin atlama veya sembolik bağ (symlink) yoluyla kısıtlamaların atlatılabildiğini ve bunun sunucunun çalıştığı sistemde daha geniş erişimlere yol açabildiğini göstermiştir. Bu bulgular, Anthropic’in koyduğu güvenlik önlemlerinin (dizin kısıtlaması gibi) tek başına yeterli olmadığını göstermiştir. Özellikle LLM tabanlı araçların çoğunlukla geliştirici rahatlığı için yüksek ayrıcalıklarla (örn. kullanıcı oturumunda veya bazen yönetici haklarıyla) çalıştırıldığı düşünülürse, bu tip açıklar kötüye kullanıldığında **sistem bütünlüğünü ciddi şekilde tehlikeye atmaktadır**.
 
-Bununla birlikte, olumlu tarafÄ±ndan bakÄ±ldÄ±ÄŸÄ±nda Anthropic ve genel olarak MCP topluluÄŸu gÃ¼venlik aÃ§Ä±klarÄ±na oldukÃ§a hÄ±zlÄ± reaksiyon vermektedir. Ã–rneÄŸin bazÄ± projelerde bildirilmiÅŸ uzaktan kod Ã§alÄ±ÅŸtÄ±rma aÃ§Ä±klarÄ±, proje geliÅŸtiricileri tarafÄ±ndan kÄ±sa sÃ¼rede yamanmÄ±ÅŸtÄ±r. AynÄ± ÅŸekilde Ã§eÅŸitli sandbox kaÃ§Ä±ÅŸÄ± sorunlarÄ±na karÅŸÄ± da ilgili yamalar ve kullanÄ±cÄ±lara yÃ¶nelik uyarÄ±lar yayÄ±nlanmÄ±ÅŸtÄ±r. Bu durum, MCP ekosisteminin gÃ¼venlik konusunu ciddiye aldÄ±ÄŸÄ±nÄ± ve proaktif iyileÅŸtirmelere gittiÄŸini gÃ¶stermektedir. Yine de, henÃ¼z genÃ§ sayÄ±labilecek bu protokol iÃ§in mevcut gÃ¼venlik Ã¶nlemlerinin *â€œyeterliâ€* olduÄŸunu sÃ¶ylemek zordur. Ortaya Ã§Ä±kan her yeni kullanÄ±m senaryosu veya sunucu uygulamasÄ±, kendine Ã¶zgÃ¼ gÃ¼venlik aÃ§Ä±klarÄ± barÄ±ndÄ±rabilir. Anthropicâ€™in baÅŸlangÄ±Ã§ta protokole dahil ettiÄŸi temel gÃ¼venlik kavramlarÄ± (OAuth ile yetkilendirme, JSON-RPC ile yapÄ±landÄ±rÄ±lmÄ±ÅŸ ileti vb.) Ã¶nemli bir zemin saÄŸlasa da, gerÃ§ek dÃ¼nyadaki saldÄ±rÄ± senaryolarÄ± bu Ã¶nlemlerin etrafÄ±ndan dolaÅŸmanÄ±n yollarÄ±nÄ± bulmuÅŸtur. Ã–zetle, **MCPâ€™nin gÃ¼venliÄŸi hala evrim geÃ§irmektedir**; mevcut Ã¶nlemler bazÄ± tehditleri azaltmakla birlikte, protokolÃ¼n tam anlamÄ±yla gÃ¼venli kabul edilebilmesi iÃ§in sÃ¼rekli gÃ¶zden geÃ§irme, test etme ve gÃ¼ncelleme gerekmektedir.
+Bununla birlikte, olumlu tarafından bakıldığında Anthropic ve genel olarak MCP topluluğu güvenlik açıklarına oldukça hızlı reaksiyon vermektedir. Örneğin bazı projelerde bildirilmiş uzaktan kod çalıştırma açıkları, proje geliştiricileri tarafından kısa sürede yamanmıştır. Aynı şekilde çeşitli sandbox kaçışı sorunlarına karşı da ilgili yamalar ve kullanıcılara yönelik uyarılar yayınlanmıştır. Bu durum, MCP ekosisteminin güvenlik konusunu ciddiye aldığını ve proaktif iyileştirmelere gittiğini göstermektedir. Yine de, henüz genç sayılabilecek bu protokol için mevcut güvenlik önlemlerinin *“yeterli”* olduğunu söylemek zordur. Ortaya çıkan her yeni kullanım senaryosu veya sunucu uygulaması, kendine özgü güvenlik açıkları barındırabilir. Anthropic’in başlangıçta protokole dahil ettiği temel güvenlik kavramları (OAuth ile yetkilendirme, JSON-RPC ile yapılandırılmış ileti vb.) önemli bir zemin sağlasa da, gerçek dünyadaki saldırı senaryoları bu önlemlerin etrafından dolaşmanın yollarını bulmuştur. Özetle, **MCP’nin güvenliği hala evrim geçirmektedir**; mevcut önlemler bazı tehditleri azaltmakla birlikte, protokolün tam anlamıyla güvenli kabul edilebilmesi için sürekli gözden geçirme, test etme ve güncelleme gerekmektedir.
 
-### GeliÅŸtiriciler ve Kurumlar Ä°Ã§in GÃ¼venli MCP Uygulama Ã–nerileri
+### Geliştiriciler ve Kurumlar İçin Güvenli MCP Uygulama Önerileri
 
-MCP protokolÃ¼nÃ¼ gÃ¼venli bir biÃ§imde uygulamak ve kullanmak isteyen geliÅŸtiriciler ile kurumlar, aÅŸaÄŸÄ±daki Ã¶nlemleri gÃ¶z Ã¶nÃ¼nde bulundurmalÄ±dÄ±r:
+MCP protokolünü güvenli bir biçimde uygulamak ve kullanmak isteyen geliştiriciler ile kurumlar, aşağıdaki önlemleri göz önünde bulundurmalıdır:
 
-* **GÃ¼venli Ä°letiÅŸim ve Sertifika DoÄŸrulamasÄ±:** Uzak MCP sunucularÄ±yla haberleÅŸirken daima HTTPS protokolÃ¼ kullanÄ±n ve sunucu sertifikasÄ±nÄ±n doÄŸrulandÄ±ÄŸÄ±ndan emin olun. ÅifrelenmemiÅŸ HTTP Ã¼zerinden asla hassas veri iletmeyin; aksi halde MITM saldÄ±rÄ±larÄ±na aÃ§Ä±k hale gelirsiniz. Gerekirse istemci tarafÄ±nda, sunucu URLâ€™sinin `https://` ile baÅŸlamadÄ±ÄŸÄ±nÄ± fark edince baÄŸlantÄ±yÄ± reddeden kontroller ekleyin.
-* **GÃ¼Ã§lÃ¼ Kimlik DoÄŸrulama ve Yetkilendirme:** MCP sunucularÄ±na eriÅŸim iÃ§in mÃ¼mkÃ¼nse OAuth 2.0 gibi ispatlanmÄ±ÅŸ yÃ¶ntemlerle alÄ±nan eriÅŸim tokenâ€™larÄ± kullanÄ±n. Her sunucunun eriÅŸim tokenâ€™Ä±na sadece gerekli asgari yetkileri (scopelarÄ±) tanÄ±yÄ±n (Ã¶rneÄŸin bir dosya sistemi sunucusuna salt okunur eriÅŸim izni vermek gibi). â€œEn az ayrÄ±calÄ±kâ€ ilkesini gÃ¶zetin; bir MCP sunucusunun kullanÄ±cÄ± adÄ±na yapabileceÄŸi iÅŸlemleri kÄ±sÄ±tlayÄ±n. AyrÄ±ca, bir istemci bir sunucuya eriÅŸirken tek oturumluk veya kÄ±sa Ã¶mÃ¼rlÃ¼ tokenâ€™lar kullanmayÄ±, bunlarÄ± dÃ¼zenli olarak yenilemeyi ihmal etmeyin.
-* **GÃ¼venilmeyen Sunuculara KarÅŸÄ± Tedbir:** YalnÄ±zca gÃ¼vendiÄŸiniz kaynaklardan gelen MCP sunucularÄ±nÄ± yÃ¼kleyin veya baÄŸlanÄ±n. Topluluk tarafÄ±ndan pek incelenmemiÅŸ, rastgele depolardan gelen sunucu uygulamalarÄ±nÄ± kullanmak risklidir. Kurum iÃ§inde MCP kullanÄ±lacaksa, **onaylÄ± bir sunucu listesi** oluÅŸturarak kullanÄ±cÄ±larÄ±n sadece bu sunuculara baÄŸlanmasÄ±na izin verin. MCP istemci uygulamanÄ±z, baÄŸlanÄ±lan sunucunun kimliÄŸini (Ã¶rneÄŸin dijital imza veya hash doÄŸrulamasÄ± ile) kontrol edebiliyorsa bu Ã¶zelliÄŸi etkinleÅŸtirin.
-* **Kod BÃ¼tÃ¼nlÃ¼ÄŸÃ¼ ve GÃ¼ncellemeler:** MCP sunucu ve istemci yazÄ±lÄ±mlarÄ±nÄ±zÄ±n bÃ¼tÃ¼nlÃ¼ÄŸÃ¼nÃ¼ ve gÃ¼ncelliÄŸini koruyun. Kendi geliÅŸtirdiÄŸiniz MCP sunucularÄ±nÄ± dijital olarak imzalayÄ±n ve kullanÄ±cÄ±larÄ±n indirdiÄŸi kodun bu imzayla eÅŸleÅŸtiÄŸini doÄŸrulayÄ±n. KullandÄ±ÄŸÄ±nÄ±z MCP bileÅŸenlerinde Ã§Ä±kan gÃ¼venlik gÃ¼ncellemelerini yakÄ±ndan takip edin ve gecikmeden uygulayÄ±n. Standart bir **zafiyet yÃ¶netimi** sÃ¼reci dahilinde, MCP ile ilgili kÃ¼tÃ¼phaneleri ve araÃ§larÄ± belirli aralÄ±klarla tarayÄ±p bilinen aÃ§Ä±klar iÃ§in yamalarÄ± geÃ§irin.
-* **GÃ¼venli Kod GeliÅŸtirme Prensipleri:** Bir MCP sunucusu geliÅŸtiriyorsanÄ±z, kullanÄ±cÄ±lardan veya LLMâ€™den alacaÄŸÄ±nÄ±z her girdiÄŸin potansiyel olarak zararlÄ± olabileceÄŸini varsayÄ±n. Ã–zellikle komut satÄ±rÄ± Ã§aÄŸrÄ±larÄ±, dosya eriÅŸimleri gibi iÅŸlemleri gerÃ§ekleÅŸtirirken girdi validasyonuna Ã¶nem verin. Parametreleri sistem komutlarÄ±na iletmeden Ã¶nce boÅŸluk, noktalÄ± virgÃ¼l, ampersand gibi komut ayrÄ±ÅŸtÄ±rÄ±cÄ± karakterlerden arÄ±ndÄ±rÄ±n veya bu karakterlere izin vermeyin. SQL sorgularÄ±, kabuk komutlarÄ± veya iÅŸletim sistemi APIâ€™leri Ã§aÄŸrÄ±larÄ± yapÄ±yorsanÄ±z **enjeksiyon karÅŸÄ±tÄ±** gÃ¼venlik kalÄ±plarÄ±nÄ± uygulayÄ±n (Ã¶rn. parametreli sorgular, sabit argÃ¼man listeleri vb.). AyrÄ±ca, derleme ve CI sÃ¼reÃ§lerinize statik kod analizi araÃ§larÄ± entegre ederek zayÄ±flÄ±klarÄ± daha kod yazÄ±m aÅŸamasÄ±nda yakalamaya Ã§alÄ±ÅŸÄ±n.
-* **Sandbox ve AyÄ±rÄ±lmÄ±ÅŸ Haklar:** MÃ¼mkÃ¼n olan her durumda, MCP sunucularÄ±nÄ± izole bir ortama hapsedin. Ã–rneÄŸin bir dosya sistemi MCP sunucusu, sadece belli bir klasÃ¶r altÄ±nda okuma/yazma yapabilecek ÅŸekilde *chroot/jail* ortamÄ±nda veya konteyner iÃ§inde Ã§alÄ±ÅŸtÄ±rÄ±lmalÄ±dÄ±r. Ä°ÅŸletim sistemi seviyesinde bu sunuculara ayrÄ± kullanÄ±cÄ± hesaplarÄ± tahsis etmek ve bu hesaplara minimum yetkileri vermek etkili bir yÃ¶ntemdir. BÃ¶ylece, olasÄ± bir saldÄ±rÄ±da sunucunun yapabilecekleri kÄ±sÄ±tlanmÄ±ÅŸ olacaktÄ±r ve sistem geneline yayÄ±lmasÄ± engellenir.
-* **KullanÄ±cÄ± OnayÄ± ve Denetim MekanizmalarÄ±:** MCP istemcisi tarafÄ±nda, LLMâ€™nin tetiklediÄŸi yÃ¼ksek riskli eylemler iÃ§in mutlaka kullanÄ±cÄ±nÄ±n onayÄ±nÄ± alacak bir adÄ±m ekleyin. Ã–rneÄŸin, dosya silme, yeni kullanÄ±cÄ± oluÅŸturma, para transferi gibi kritik bir iÅŸlem bir araÃ§ ile yapÄ±lacaksa, LLM bunu istese dahi kullanÄ±cÄ±dan â€œOnaylÄ±yor musunuz?â€ ÅŸeklinde bir geri bildirim almadan yÃ¼rÃ¼tmeyin. Bu, olasÄ± prompt enjeksiyonu vakalarÄ±nda istenmeyen sonuÃ§larÄ± Ã¶nlemek iÃ§in son savunma hattÄ±dÄ±r. Benzer ÅŸekilde, MCP istemciniz gerÃ§ekleÅŸtirilen iÅŸlemleri kullanÄ±cÄ±ya Ã¶zetleyebiliyorsa (gÃ¶rev tamamlandÄ±ÄŸÄ±nda â€œSunucu X ÅŸu iÅŸlemi gerÃ§ekleÅŸtirdiâ€ gibi), bu ÅŸeffaflÄ±k kullanÄ±cÄ±yÄ± gÃ¼vende tutmaya yardÄ±mcÄ± olacaktÄ±r.
-* **KayÄ±t ve Ä°zleme:** MCP sunucularÄ±nÄ±n yaptÄ±ÄŸÄ± iÅŸlemleri merkezi bir gÃ¼nlÃ¼k (log) sistemine kaydetmesi veya en azÄ±ndan yerel olarak log tutmasÄ± Ã§ok Ã¶nemlidir. BÃ¶ylece, geriye dÃ¶nÃ¼k bir inceleme gerektiÄŸinde hangi komutlarÄ±n Ã§alÄ±ÅŸtÄ±rÄ±ldÄ±ÄŸÄ±, hangi kaynaklara eriÅŸildiÄŸi tespit edilebilir. Kurumlar, MCP aracÄ±lÄ±ÄŸÄ±yla gerÃ§ekleÅŸtirilen bÃ¼tÃ¼n hareketleri SIEM gibi gÃ¼venlik izleme sistemlerine besleyerek anormal bir durum olup olmadÄ±ÄŸÄ±nÄ± denetleyebilirler. Ã–rneÄŸin, normalde bir araÃ§ gÃ¼nde birkaÃ§ kez Ã§alÄ±ÅŸÄ±rken aniden yÃ¼zlerce kez Ã§alÄ±ÅŸmaya baÅŸlamÄ±ÅŸsa, bu bir kompromize iÅŸareti olabilir ve loglar sayesinde gÃ¶rÃ¼lebilir.
-* **SÃ¼rÃ¼m Kilitleme ve DoÄŸrulama:** ÃœÃ§Ã¼ncÃ¼ parti MCP sunucularÄ±nÄ± uygulamanÄ±za entegre ediyorsanÄ±z, belirli gÃ¼venilir bir sÃ¼rÃ¼me kilitleyin ve bu sunucunun kodunda sonradan bir deÄŸiÅŸiklik olup olmadÄ±ÄŸÄ±nÄ± izleyin. Otomatik gÃ¼ncellemeler yerine manuel inceleme sonrasÄ± gÃ¼ncelleme yapma yaklaÅŸÄ±mÄ±nÄ± benimseyin. Bu sayede, bir araÃ§ gÃ¼ncellendiÄŸinde iÃ§ine eklenmiÅŸ olasÄ± zararlÄ± bir kod parÃ§asÄ±nÄ± fark etme ÅŸansÄ±nÄ±z olur.
+* **Güvenli İletişim ve Sertifika Doğrulaması:** Uzak MCP sunucularıyla haberleşirken daima HTTPS protokolü kullanın ve sunucu sertifikasının doğrulandığından emin olun. Şifrelenmemiş HTTP üzerinden asla hassas veri iletmeyin; aksi halde MITM saldırılarına açık hale gelirsiniz. Gerekirse istemci tarafında, sunucu URL’sinin `https://` ile başlamadığını fark edince bağlantıyı reddeden kontroller ekleyin.
+* **Güçlü Kimlik Doğrulama ve Yetkilendirme:** MCP sunucularına erişim için mümkünse OAuth 2.0 gibi ispatlanmış yöntemlerle alınan erişim token’ları kullanın. Her sunucunun erişim token’ına sadece gerekli asgari yetkileri (scopeları) tanıyın (örneğin bir dosya sistemi sunucusuna salt okunur erişim izni vermek gibi). “En az ayrıcalık” ilkesini gözetin; bir MCP sunucusunun kullanıcı adına yapabileceği işlemleri kısıtlayın. Ayrıca, bir istemci bir sunucuya erişirken tek oturumluk veya kısa ömürlü token’lar kullanmayı, bunları düzenli olarak yenilemeyi ihmal etmeyin.
+* **Güvenilmeyen Sunuculara Karşı Tedbir:** Yalnızca güvendiğiniz kaynaklardan gelen MCP sunucularını yükleyin veya bağlanın. Topluluk tarafından pek incelenmemiş, rastgele depolardan gelen sunucu uygulamalarını kullanmak risklidir. Kurum içinde MCP kullanılacaksa, **onaylı bir sunucu listesi** oluşturarak kullanıcıların sadece bu sunuculara bağlanmasına izin verin. MCP istemci uygulamanız, bağlanılan sunucunun kimliğini (örneğin dijital imza veya hash doğrulaması ile) kontrol edebiliyorsa bu özelliği etkinleştirin.
+* **Kod Bütünlüğü ve Güncellemeler:** MCP sunucu ve istemci yazılımlarınızın bütünlüğünü ve güncelliğini koruyun. Kendi geliştirdiğiniz MCP sunucularını dijital olarak imzalayın ve kullanıcıların indirdiği kodun bu imzayla eşleştiğini doğrulayın. Kullandığınız MCP bileşenlerinde çıkan güvenlik güncellemelerini yakından takip edin ve gecikmeden uygulayın. Standart bir **zafiyet yönetimi** süreci dahilinde, MCP ile ilgili kütüphaneleri ve araçları belirli aralıklarla tarayıp bilinen açıklar için yamaları geçirin.
+* **Güvenli Kod Geliştirme Prensipleri:** Bir MCP sunucusu geliştiriyorsanız, kullanıcılardan veya LLM’den alacağınız her girdiğin potansiyel olarak zararlı olabileceğini varsayın. Özellikle komut satırı çağrıları, dosya erişimleri gibi işlemleri gerçekleştirirken girdi validasyonuna önem verin. Parametreleri sistem komutlarına iletmeden önce boşluk, noktalı virgül, ampersand gibi komut ayrıştırıcı karakterlerden arındırın veya bu karakterlere izin vermeyin. SQL sorguları, kabuk komutları veya işletim sistemi API’leri çağrıları yapıyorsanız **enjeksiyon karşıtı** güvenlik kalıplarını uygulayın (örn. parametreli sorgular, sabit argüman listeleri vb.). Ayrıca, derleme ve CI süreçlerinize statik kod analizi araçları entegre ederek zayıflıkları daha kod yazım aşamasında yakalamaya çalışın.
+* **Sandbox ve Ayırılmış Haklar:** Mümkün olan her durumda, MCP sunucularını izole bir ortama hapsedin. Örneğin bir dosya sistemi MCP sunucusu, sadece belli bir klasör altında okuma/yazma yapabilecek şekilde *chroot/jail* ortamında veya konteyner içinde çalıştırılmalıdır. İşletim sistemi seviyesinde bu sunuculara ayrı kullanıcı hesapları tahsis etmek ve bu hesaplara minimum yetkileri vermek etkili bir yöntemdir. Böylece, olası bir saldırıda sunucunun yapabilecekleri kısıtlanmış olacaktır ve sistem geneline yayılması engellenir.
+* **Kullanıcı Onayı ve Denetim Mekanizmaları:** MCP istemcisi tarafında, LLM’nin tetiklediği yüksek riskli eylemler için mutlaka kullanıcının onayını alacak bir adım ekleyin. Örneğin, dosya silme, yeni kullanıcı oluşturma, para transferi gibi kritik bir işlem bir araç ile yapılacaksa, LLM bunu istese dahi kullanıcıdan “Onaylıyor musunuz?” şeklinde bir geri bildirim almadan yürütmeyin. Bu, olası prompt enjeksiyonu vakalarında istenmeyen sonuçları önlemek için son savunma hattıdır. Benzer şekilde, MCP istemciniz gerçekleştirilen işlemleri kullanıcıya özetleyebiliyorsa (görev tamamlandığında “Sunucu X şu işlemi gerçekleştirdi” gibi), bu şeffaflık kullanıcıyı güvende tutmaya yardımcı olacaktır.
+* **Kayıt ve İzleme:** MCP sunucularının yaptığı işlemleri merkezi bir günlük (log) sistemine kaydetmesi veya en azından yerel olarak log tutması çok önemlidir. Böylece, geriye dönük bir inceleme gerektiğinde hangi komutların çalıştırıldığı, hangi kaynaklara erişildiği tespit edilebilir. Kurumlar, MCP aracılığıyla gerçekleştirilen bütün hareketleri SIEM gibi güvenlik izleme sistemlerine besleyerek anormal bir durum olup olmadığını denetleyebilirler. Örneğin, normalde bir araç günde birkaç kez çalışırken aniden yüzlerce kez çalışmaya başlamışsa, bu bir kompromize işareti olabilir ve loglar sayesinde görülebilir.
+* **Sürüm Kilitleme ve Doğrulama:** Üçüncü parti MCP sunucularını uygulamanıza entegre ediyorsanız, belirli güvenilir bir sürüme kilitleyin ve bu sunucunun kodunda sonradan bir değişiklik olup olmadığını izleyin. Otomatik güncellemeler yerine manuel inceleme sonrası güncelleme yapma yaklaşımını benimseyin. Bu sayede, bir araç güncellendiğinde içine eklenmiş olası zararlı bir kod parçasını fark etme şansınız olur.
 
-YukarÄ±daki Ã¶nlemler, MCP protokolÃ¼nÃ¼n getirdiÄŸi esneklik ve gÃ¼Ã§ ile beraber gelen riskleri azaltmaya yÃ¶neliktir. Gerek bireysel geliÅŸtiriciler, gerekse MCPâ€™yi altyapÄ±larÄ±nda kullanmayÄ± planlayan kurumlar, **â€œgÃ¼venliÄŸi en baÅŸtan tasarlamaâ€** ilkesini uygulamalÄ±dÄ±r. Bu, protokolÃ¼n kendi saÄŸladÄ±ÄŸÄ± gÃ¼venlik Ã¶zellikleri kadar, kullanÄ±m ortamÄ±ndaki operasyonel gÃ¼venlik tedbirlerini de iÃ§erir.
+Yukarıdaki önlemler, MCP protokolünün getirdiği esneklik ve güç ile beraber gelen riskleri azaltmaya yöneliktir. Gerek bireysel geliştiriciler, gerekse MCP’yi altyapılarında kullanmayı planlayan kurumlar, **“güvenliği en baştan tasarlama”** ilkesini uygulamalıdır. Bu, protokolün kendi sağladığı güvenlik özellikleri kadar, kullanım ortamındaki operasyonel güvenlik tedbirlerini de içerir.
 
-### SonuÃ§
+### Sonuç
 
-â€œAntopicâ€ (Anthropic) tarafÄ±ndan geliÅŸtirilen aÃ§Ä±k kaynak MCP protokolÃ¼, yapay zekÃ¢ uygulamalarÄ±nÄ±n yeteneklerini artÄ±ran yenilikÃ§i bir mimari ve standart getirmiÅŸtir. Bu Ã§alÄ±ÅŸma kapsamÄ±nda MCPâ€™nin mimari yapÄ±sÄ± ve iÅŸleyiÅŸi detaylÄ± bir ÅŸekilde incelenmiÅŸ; protokolÃ¼n LLMâ€™lerle araÃ§lar arasÄ±nda nasÄ±l bir **baÄŸlamsal kÃ¶prÃ¼** kurduÄŸu ortaya konmuÅŸtur. Elde edilen bulgular, MCPâ€™nin saÄŸladÄ±ÄŸÄ± faydalar kadar, gÃ¶z ardÄ± edilmemesi gereken gÃ¼venlik boyutunu da vurgulamaktadÄ±r. Ã–zellikle protokolÃ¼n aÃ§Ä±k kaynak doÄŸasÄ± sayesinde henÃ¼z geliÅŸtirme aÅŸamasÄ±ndayken Ã§eÅŸitli gÃ¼venlik aÃ§Ä±klarÄ± tespit edilmiÅŸ ve paylaÅŸÄ±lmÄ±ÅŸtÄ±r. Bu sayede geliÅŸtiriciler ve kullanÄ±cÄ±lar, protokolÃ¼ Ã¼retim ortamlarÄ±na taÅŸÄ±madan Ã¶nce riskleri gÃ¶rme ve Ã¶nlem alma fÄ±rsatÄ± yakalamÄ±ÅŸtÄ±r.
+“Antopic” (Anthropic) tarafından geliştirilen açık kaynak MCP protokolü, yapay zekâ uygulamalarının yeteneklerini artıran yenilikçi bir mimari ve standart getirmiştir. Bu çalışma kapsamında MCP’nin mimari yapısı ve işleyişi detaylı bir şekilde incelenmiş; protokolün LLM’lerle araçlar arasında nasıl bir **bağlamsal köprü** kurduğu ortaya konmuştur. Elde edilen bulgular, MCP’nin sağladığı faydalar kadar, göz ardı edilmemesi gereken güvenlik boyutunu da vurgulamaktadır. Özellikle protokolün açık kaynak doğası sayesinde henüz geliştirme aşamasındayken çeşitli güvenlik açıkları tespit edilmiş ve paylaşılmıştır. Bu sayede geliştiriciler ve kullanıcılar, protokolü üretim ortamlarına taşımadan önce riskleri görme ve önlem alma fırsatı yakalamıştır.
 
-YapÄ±lan deÄŸerlendirmeler gÃ¶stermektedir ki MCP Ã¼zerindeki bazÄ± gÃ¼venlik aÃ§Ä±klarÄ±nÄ±n **Ã¶nceden belirlenmesi ve giderilmesi**, ileride yaÅŸanabilecek ciddi ihlallerin Ã¶nÃ¼ne geÃ§ebilecektir. Bu raporda dile getirilen potansiyel saldÄ±rÄ± vektÃ¶rleri ve gerÃ§ek dÃ¼nyada karÅŸÄ±laÅŸÄ±lan zafiyetler, protokolÃ¼n uygulanmasÄ± esnasÄ±nda nelere dikkat edilmesi gerektiÄŸine dair somut bir farkÄ±ndalÄ±k yaratÄ±r. Gerek Anthropicâ€™in resmi iyileÅŸtirmeleri, gerekse baÄŸÄ±msÄ±z araÅŸtÄ±rmacÄ±larÄ±n bulgularÄ± Ä±ÅŸÄ±ÄŸÄ±nda, MCPâ€™nin gÃ¼venlik mimarisi sÃ¼rekli evrilmektedir. DolayÄ±sÄ±yla bu Ã§alÄ±ÅŸma, hem MCP geliÅŸtiricilerine hem de protokolÃ¼ kendi sistemlerinde kullanmayÄ± dÃ¼ÅŸÃ¼nen kurumlara yÃ¶nelik proaktif bir uyarÄ± niteliÄŸindedir.
+Yapılan değerlendirmeler göstermektedir ki MCP üzerindeki bazı güvenlik açıklarının **önceden belirlenmesi ve giderilmesi**, ileride yaşanabilecek ciddi ihlallerin önüne geçebilecektir. Bu raporda dile getirilen potansiyel saldırı vektörleri ve gerçek dünyada karşılaşılan zafiyetler, protokolün uygulanması esnasında nelere dikkat edilmesi gerektiğine dair somut bir farkındalık yaratır. Gerek Anthropic’in resmi iyileştirmeleri, gerekse bağımsız araştırmacıların bulguları ışığında, MCP’nin güvenlik mimarisi sürekli evrilmektedir. Dolayısıyla bu çalışma, hem MCP geliştiricilerine hem de protokolü kendi sistemlerinde kullanmayı düşünen kurumlara yönelik proaktif bir uyarı niteliğindedir.
 
-Teknik literatÃ¼re katkÄ± anlamÄ±nda, MCP protokolÃ¼nÃ¼n mimarisi ve iÅŸlevselliÄŸine dair derinlemesine bir bakÄ±ÅŸ sunulmuÅŸtur. Bu, henÃ¼z yeni sayÄ±labilecek bir standart hakkÄ±nda derli toplu bir bilgi birikimi saÄŸlamasÄ± aÃ§Ä±sÄ±ndan deÄŸerlidir. AyrÄ±ca **aÃ§Ä±k kaynak protokollerin gÃ¼venliÄŸi** konusunda genel Ã§Ä±karÄ±mlar yapma imkÃ¢nÄ± da doÄŸmuÅŸtur: ÅeffaflÄ±k ve kolektif katkÄ± sayesinde gÃ¼venlik aÃ§Ä±klarÄ±nÄ± hÄ±zla bulup dÃ¼zeltmek mÃ¼mkÃ¼n olsa da, aÃ§Ä±k ekosistemde gÃ¼venin tesis edilmesi ve sÃ¼rdÃ¼rÃ¼lmesi ayrÄ± bir Ã§aba gerektirmektedir. SonuÃ§ olarak, MCP protokolÃ¼ Ã¶zelinde elde edilen deneyimler, benzer ÅŸekilde geliÅŸtirilen diÄŸer aÃ§Ä±k kaynak projelerde de gÃ¼venlik odaklÄ± yaklaÅŸÄ±mÄ±n Ã¶nemini pekiÅŸtirmektedir.
+Teknik literatüre katkı anlamında, MCP protokolünün mimarisi ve işlevselliğine dair derinlemesine bir bakış sunulmuştur. Bu, henüz yeni sayılabilecek bir standart hakkında derli toplu bir bilgi birikimi sağlaması açısından değerlidir. Ayrıca **açık kaynak protokollerin güvenliği** konusunda genel çıkarımlar yapma imkânı da doğmuştur: Şeffaflık ve kolektif katkı sayesinde güvenlik açıklarını hızla bulup düzeltmek mümkün olsa da, açık ekosistemde güvenin tesis edilmesi ve sürdürülmesi ayrı bir çaba gerektirmektedir. Sonuç olarak, MCP protokolü özelinde elde edilen deneyimler, benzer şekilde geliştirilen diğer açık kaynak projelerde de güvenlik odaklı yaklaşımın önemini pekiştirmektedir.
 
-MCP protokolÃ¼ doÄŸru uygulandÄ±ÄŸÄ±nda yapay zekÃ¢ dÃ¼nyasÄ±nda verimlilik ve yetenek artÄ±ÅŸÄ± saÄŸlayan bir araÃ§tÄ±r; ancak gÃ¼venlik prensipleri ikinci plana atÄ±lmadan, â€œÃ¶nce gÃ¼venlikâ€ yaklaÅŸÄ±mÄ±yla ele alÄ±nmalÄ±dÄ±r. Bu denge saÄŸlandÄ±ÄŸÄ±nda, MCP gibi protokoller inovasyon ile emniyeti bir arada gÃ¶tÃ¼rebilecek, hem geliÅŸtiriciler hem de kullanÄ±cÄ±lar iÃ§in bÃ¼yÃ¼k kazanÄ±mlar sunacaktÄ±r.
+MCP protokolü doğru uygulandığında yapay zekâ dünyasında verimlilik ve yetenek artışı sağlayan bir araçtır; ancak güvenlik prensipleri ikinci plana atılmadan, “önce güvenlik” yaklaşımıyla ele alınmalıdır. Bu denge sağlandığında, MCP gibi protokoller inovasyon ile emniyeti bir arada götürebilecek, hem geliştiriciler hem de kullanıcılar için büyük kazanımlar sunacaktır.
 
 ### Kaynaklar
 
-* Anthropic â€” Model Context Protocol (MCP) GitHub projesi ve resmi belgeler
-* GitHub Docs â€” Model Context Protocol (MCP) hakkÄ±nda dokÃ¼mantasyon
-* BaÄŸÄ±msÄ±z gÃ¼venlik raporlarÄ± ve analizler (Ã¶rnek gÃ¼venlik araÅŸtÄ±rma raporlarÄ±, CVE bildirileri, proje yamalarÄ±)
+* Anthropic — Model Context Protocol (MCP) GitHub projesi ve resmi belgeler
+* GitHub Docs — Model Context Protocol (MCP) hakkında dokümantasyon
+* Bağımsız güvenlik raporları ve analizler (örnek güvenlik araştırma raporları, CVE bildirileri, proje yamaları)
 
 ---
 
-## Ek A: LiteratÃ¼r
+## Ek A: Literatür
 
 ### Akademik Makaleler
 
-- **Konu BaÅŸlÄ±ÄŸÄ±:** Model Context Protocol (MCP): Landscape, Security Threats, and Future Research Directions
+- **Konu Başlığı:** Model Context Protocol (MCP): Landscape, Security Threats, and Future Research Directions
   **Kaynak/Kurum & Tarih:** arXiv, 2025-03
-  **BaÄŸlantÄ±:** [https://arxiv.org/abs/2503.23278](https://arxiv.org/abs/2503.23278)
-  **TÃ¼rkÃ§e Ã–zet:** MCPâ€™nin mimari ve gÃ¼venlik boyutlarÄ±nÄ± inceleyen Ã§alÄ±ÅŸma, dÃ¶rt evre ve 16 faaliyet adÄ±mÄ±ndan oluÅŸan bir yaÅŸam dÃ¶ngÃ¼sÃ¼ modeli sunar. 16 senaryoluk bir tehdit taksonomisi oluÅŸturur ve MCPâ€™nin mevcut endÃ¼stri benimsenmesini deÄŸerlendirir. ProtokolÃ¼n gÃ¼Ã§lÃ¼ yÃ¶nleri ile yaygÄ±n kullanÄ±mÄ±nÄ± sÄ±nÄ±rlayan eksikler belirlenir ve gelecekteki araÅŸtÄ±rma yÃ¶nleri tanÄ±mlanÄ±r.
+  **Bağlantı:** [https://arxiv.org/abs/2503.23278](https://arxiv.org/abs/2503.23278)
+  **Türkçe Özet:** MCP’nin mimari ve güvenlik boyutlarını inceleyen çalışma, dört evre ve 16 faaliyet adımından oluşan bir yaşam döngüsü modeli sunar. 16 senaryoluk bir tehdit taksonomisi oluşturur ve MCP’nin mevcut endüstri benimsenmesini değerlendirir. Protokolün güçlü yönleri ile yaygın kullanımını sınırlayan eksikler belirlenir ve gelecekteki araştırma yönleri tanımlanır.
 
-- **Konu BaÅŸlÄ±ÄŸÄ±:** MCP-Universe: Benchmarking Large Language Models with Real-World Model Context Protocol Servers
+- **Konu Başlığı:** MCP-Universe: Benchmarking Large Language Models with Real-World Model Context Protocol Servers
   **Kaynak/Kurum & Tarih:** arXiv, 2025-08
-  **BaÄŸlantÄ±:** [https://arxiv.org/abs/2508.14704](https://arxiv.org/abs/2508.14704)
-  **TÃ¼rkÃ§e Ã–zet:** GerÃ§ek MCP sunucularÄ±yla etkileÅŸimli gÃ¶revlerden oluÅŸan *MCP-Universe* adlÄ± kÄ±yaslama paketi tanÄ±tÄ±lÄ±r. GPT-5, Grok-4 ve Claude-4.0-Sonnet gibi modeller test edilmiÅŸtir. Uzun-baÄŸlam ve bilinmeyen araÃ§ sorunlarÄ± tespit edilmiÅŸtir. Ã‡alÄ±ÅŸma, MCP-tabanlÄ± deÄŸerlendirme ekosisteminin aÃ§Ä±k kaynak altyapÄ±sÄ±nÄ± saÄŸlar.
+  **Bağlantı:** [https://arxiv.org/abs/2508.14704](https://arxiv.org/abs/2508.14704)
+  **Türkçe Özet:** Gerçek MCP sunucularıyla etkileşimli görevlerden oluşan *MCP-Universe* adlı kıyaslama paketi tanıtılır. GPT-5, Grok-4 ve Claude-4.0-Sonnet gibi modeller test edilmiştir. Uzun-bağlam ve bilinmeyen araç sorunları tespit edilmiştir. Çalışma, MCP-tabanlı değerlendirme ekosisteminin açık kaynak altyapısını sağlar.
 
-- **Konu BaÅŸlÄ±ÄŸÄ±:** Automatic Red Teaming LLM-based Agents with Model Context Protocol Tools
+- **Konu Başlığı:** Automatic Red Teaming LLM-based Agents with Model Context Protocol Tools
   **Kaynak/Kurum & Tarih:** arXiv, 2025-09
-  **BaÄŸlantÄ±:** [https://arxiv.org/abs/2509.21011](https://arxiv.org/abs/2509.21011)
-  **TÃ¼rkÃ§e Ã–zet:** MCP araÃ§larÄ±nÄ±n **araÃ§ zehirleme saldÄ±rÄ±larÄ±na** aÃ§Ä±k olduÄŸu belirtilir. Ã–nerilen *AutoMalTool* sistemi, LLM ajanlarÄ±nÄ± kÃ¶tÃ¼ niyetli MCP araÃ§larÄ±yla otomatik olarak test eder. Bulgular, mevcut MCP gÃ¼venlik Ã¶nlemlerinin yetersiz olduÄŸunu ve sistematik kÄ±rmÄ±zÄ± takÄ±m yaklaÅŸÄ±mÄ±na ihtiyaÃ§ duyulduÄŸunu gÃ¶sterir.
+  **Bağlantı:** [https://arxiv.org/abs/2509.21011](https://arxiv.org/abs/2509.21011)
+  **Türkçe Özet:** MCP araçlarının **araç zehirleme saldırılarına** açık olduğu belirtilir. Önerilen *AutoMalTool* sistemi, LLM ajanlarını kötü niyetli MCP araçlarıyla otomatik olarak test eder. Bulgular, mevcut MCP güvenlik önlemlerinin yetersiz olduğunu ve sistematik kırmızı takım yaklaşımına ihtiyaç duyulduğunu gösterir.
 
-- **Konu BaÅŸlÄ±ÄŸÄ±:** Advancing Multi-Agent Systems Through Model Context Protocol
+- **Konu Başlığı:** Advancing Multi-Agent Systems Through Model Context Protocol
   **Kaynak/Kurum & Tarih:** arXiv, 2025-04
-  **BaÄŸlantÄ±:** [https://arxiv.org/abs/2504.21030](https://arxiv.org/abs/2504.21030)
-  **TÃ¼rkÃ§e Ã–zet:** Ã‡ok etmenli yapay zekÃ¢ sistemlerinde baÄŸlam paylaÅŸÄ±mÄ±nÄ± standartlaÅŸtÄ±ran MCP mimarisi aÃ§Ä±klanÄ±r. Kurumsal bilgi yÃ¶netimi ve daÄŸÄ±tÄ±k problem Ã§Ã¶zme senaryolarÄ±nda performans artÄ±ÅŸÄ± saÄŸladÄ±ÄŸÄ± gÃ¶sterilir. MCPâ€™nin koordinasyon verimliliÄŸini ve baÄŸlam farkÄ±ndalÄ±ÄŸÄ±nÄ± artÄ±rdÄ±ÄŸÄ± vurgulanÄ±r.
+  **Bağlantı:** [https://arxiv.org/abs/2504.21030](https://arxiv.org/abs/2504.21030)
+  **Türkçe Özet:** Çok etmenli yapay zekâ sistemlerinde bağlam paylaşımını standartlaştıran MCP mimarisi açıklanır. Kurumsal bilgi yönetimi ve dağıtık problem çözme senaryolarında performans artışı sağladığı gösterilir. MCP’nin koordinasyon verimliliğini ve bağlam farkındalığını artırdığı vurgulanır.
 
-- **Konu BaÅŸlÄ±ÄŸÄ±:** Model Context Protocol (MCP) at First Glance: Studying the Security and Maintainability of MCP Servers
+- **Konu Başlığı:** Model Context Protocol (MCP) at First Glance: Studying the Security and Maintainability of MCP Servers
   **Kaynak/Kurum & Tarih:** arXiv, 2025-06
-  **BaÄŸlantÄ±:** [https://arxiv.org/abs/2506.13538](https://arxiv.org/abs/2506.13538)
-  **TÃ¼rkÃ§e Ã–zet:** 1.899 aÃ§Ä±k kaynak MCP sunucusu incelenmiÅŸ ve sekiz gÃ¼venlik aÃ§Ä±ÄŸÄ± tespit edilmiÅŸtir. SunucularÄ±n %7,2â€™sinde genel gÃ¼venlik, %5,5â€™inde araÃ§ zehirleme riski gÃ¶rÃ¼lÃ¼r. MCPâ€™ye Ã¶zgÃ¼ zafiyet tarama teknikleri Ã¶nerilir.
+  **Bağlantı:** [https://arxiv.org/abs/2506.13538](https://arxiv.org/abs/2506.13538)
+  **Türkçe Özet:** 1.899 açık kaynak MCP sunucusu incelenmiş ve sekiz güvenlik açığı tespit edilmiştir. Sunucuların %7,2’sinde genel güvenlik, %5,5’inde araç zehirleme riski görülür. MCP’ye özgü zafiyet tarama teknikleri önerilir.
 
-- **Konu BaÅŸlÄ±ÄŸÄ±:** MCP-Guard: A Defense Framework for Model Context Protocol Integrity in LLM Applications
+- **Konu Başlığı:** MCP-Guard: A Defense Framework for Model Context Protocol Integrity in LLM Applications
   **Kaynak/Kurum & Tarih:** arXiv, 2025-08
-  **BaÄŸlantÄ±:** [https://arxiv.org/abs/2508.10991](https://arxiv.org/abs/2508.10991)
-  **TÃ¼rkÃ§e Ã–zet:** MCP-Guard adlÄ± Ã§ok katmanlÄ± savunma mimarisi Ã¶nerilir. Statik analiz, derin Ã¶ÄŸrenme tabanlÄ± dedektÃ¶r ve LLM â€œhakemâ€ modÃ¼lÃ¼ ile tehditler %96 doÄŸrulukla tespit edilir. *MCP-AttackBench* veri seti 70 000â€™den fazla saldÄ±rÄ± Ã¶rneÄŸi iÃ§erir.
+  **Bağlantı:** [https://arxiv.org/abs/2508.10991](https://arxiv.org/abs/2508.10991)
+  **Türkçe Özet:** MCP-Guard adlı çok katmanlı savunma mimarisi önerilir. Statik analiz, derin öğrenme tabanlı dedektör ve LLM “hakem” modülü ile tehditler %96 doğrulukla tespit edilir. *MCP-AttackBench* veri seti 70 000’den fazla saldırı örneği içerir.
 
-- **Konu BaÅŸlÄ±ÄŸÄ±:** A Survey of the Model Context Protocol (MCP): Standardizing Context to Enhance LLMs
+- **Konu Başlığı:** A Survey of the Model Context Protocol (MCP): Standardizing Context to Enhance LLMs
   **Kaynak/Kurum & Tarih:** Preprints.org, 2025-04
-  **BaÄŸlantÄ±:** [https://www.preprints.org/manuscript/202504.0245/v1](https://www.preprints.org/manuscript/202504.0245/v1)
-  **TÃ¼rkÃ§e Ã–zet:** MCPâ€™nin mimarisi, istemci-sunucu modeli ve dinamik araÃ§ keÅŸfi mekanizmalarÄ± incelenir. ProtokolÃ¼n ajan sistemlerinde birlikte Ã§alÄ±ÅŸabilirliÄŸi artÄ±rdÄ±ÄŸÄ±, ancak gÃ¼venlik ve benimsenme sorunlarÄ±nÄ±n devam ettiÄŸi vurgulanÄ±r.
+  **Bağlantı:** [https://www.preprints.org/manuscript/202504.0245/v1](https://www.preprints.org/manuscript/202504.0245/v1)
+  **Türkçe Özet:** MCP’nin mimarisi, istemci-sunucu modeli ve dinamik araç keşfi mekanizmaları incelenir. Protokolün ajan sistemlerinde birlikte çalışabilirliği artırdığı, ancak güvenlik ve benimsenme sorunlarının devam ettiği vurgulanır.
 
-- **Konu BaÅŸlÄ±ÄŸÄ±:** A Survey of Agent Interoperability Protocols: MCP, ACP, A2A, and ANP
+- **Konu Başlığı:** A Survey of Agent Interoperability Protocols: MCP, ACP, A2A, and ANP
   **Kaynak/Kurum & Tarih:** arXiv, 2025-05
-  **BaÄŸlantÄ±:** [https://arxiv.org/abs/2505.02279](https://arxiv.org/abs/2505.02279)
-  **TÃ¼rkÃ§e Ã–zet:** MCP, ACP, A2A ve ANP protokolleri karÅŸÄ±laÅŸtÄ±rÄ±lÄ±r. MCPâ€™nin JSON-RPC tabanlÄ± gÃ¼venli araÃ§ Ã§aÄŸrÄ±sÄ± saÄŸladÄ±ÄŸÄ±; ACP ve A2Aâ€™nÄ±n mesajlaÅŸma ve gÃ¶rev devri saÄŸladÄ±ÄŸÄ± aÃ§Ä±klanÄ±r. MCPâ€™nin birlikte Ã§alÄ±ÅŸabilir sistemler iÃ§in temel adÄ±m olduÄŸu sonucuna varÄ±lÄ±r.
+  **Bağlantı:** [https://arxiv.org/abs/2505.02279](https://arxiv.org/abs/2505.02279)
+  **Türkçe Özet:** MCP, ACP, A2A ve ANP protokolleri karşılaştırılır. MCP’nin JSON-RPC tabanlı güvenli araç çağrısı sağladığı; ACP ve A2A’nın mesajlaşma ve görev devri sağladığı açıklanır. MCP’nin birlikte çalışabilir sistemler için temel adım olduğu sonucuna varılır.
 
-- **Konu BaÅŸlÄ±ÄŸÄ±:** Model Context Protocols in Adaptive Transport Systems: A Survey
+- **Konu Başlığı:** Model Context Protocols in Adaptive Transport Systems: A Survey
   **Kaynak/Kurum & Tarih:** arXiv, 2025-08
-  **BaÄŸlantÄ±:** [https://arxiv.org/abs/2508.19239](https://arxiv.org/abs/2508.19239)
-  **TÃ¼rkÃ§e Ã–zet:** AkÄ±llÄ± ulaÅŸÄ±m sistemlerinde baÄŸlam paylaÅŸÄ±mÄ± iÃ§in MCPâ€™nin potansiyeli analiz edilir. MCPâ€™nin anlamsal birlikte Ã§alÄ±ÅŸabilirlik saÄŸladÄ±ÄŸÄ± ve dinamik veri alÄ±ÅŸveriÅŸinde avantaj sunduÄŸu belirtilir. GeleceÄŸin uyarlanabilir ulaÅŸÄ±m mimarilerinde MCPâ€™nin temel rol oynayabileceÄŸi Ã¶ngÃ¶rÃ¼lÃ¼r.
+  **Bağlantı:** [https://arxiv.org/abs/2508.19239](https://arxiv.org/abs/2508.19239)
+  **Türkçe Özet:** Akıllı ulaşım sistemlerinde bağlam paylaşımı için MCP’nin potansiyeli analiz edilir. MCP’nin anlamsal birlikte çalışabilirlik sağladığı ve dinamik veri alışverişinde avantaj sunduğu belirtilir. Geleceğin uyarlanabilir ulaşım mimarilerinde MCP’nin temel rol oynayabileceği öngörülür.
 
 ---
 
-### SektÃ¶rel Raporlar ve Bloglar
+### Sektörel Raporlar ve Bloglar
 
-- **Konu BaÅŸlÄ±ÄŸÄ±:** Introducing the Model Context Protocol
+- **Konu Başlığı:** Introducing the Model Context Protocol
   **Kaynak/Kurum & Tarih:** Anthropic, 2024-11
-  **BaÄŸlantÄ±:** [https://www.anthropic.com/news/model-context-protocol](https://www.anthropic.com/news/model-context-protocol)
-  **TÃ¼rkÃ§e Ã–zet:** Anthropic, MCPâ€™yi yapay zekÃ¢ asistanlarÄ± ile veri kaynaklarÄ± arasÄ±nda gÃ¼venli baÄŸlantÄ± kuran aÃ§Ä±k standart olarak tanÄ±tmÄ±ÅŸtÄ±r. SDKâ€™lar ve Ã¶rnek MCP sunucularÄ± aÃ§Ä±k kaynak paylaÅŸÄ±lmÄ±ÅŸtÄ±r. MCP, farklÄ± sistemler arasÄ±nda baÄŸlamÄ± koruyarak veri eriÅŸimini sadeleÅŸtirir.
+  **Bağlantı:** [https://www.anthropic.com/news/model-context-protocol](https://www.anthropic.com/news/model-context-protocol)
+  **Türkçe Özet:** Anthropic, MCP’yi yapay zekâ asistanları ile veri kaynakları arasında güvenli bağlantı kuran açık standart olarak tanıtmıştır. SDK’lar ve örnek MCP sunucuları açık kaynak paylaşılmıştır. MCP, farklı sistemler arasında bağlamı koruyarak veri erişimini sadeleştirir.
 
-- **Konu BaÅŸlÄ±ÄŸÄ±:** Microsoft Build 2025 â€“ The Age of AI Agents
+- **Konu Başlığı:** Microsoft Build 2025 – The Age of AI Agents
   **Kaynak/Kurum & Tarih:** Microsoft Official Blog, 2025-05
-  **BaÄŸlantÄ±:** [https://blogs.microsoft.com/blog/2025/05/19/microsoft-build-2025-the-age-of-ai-agents-and-building-the-open-agentic-web/](https://blogs.microsoft.com/blog/2025/05/19/microsoft-build-2025-the-age-of-ai-agents-and-building-the-open-agentic-web/)
-  **TÃ¼rkÃ§e Ã–zet:** Microsoft, MCPâ€™yi GitHub, Copilot Studio, Dynamics 365 ve Azure AI Foundry gibi Ã¼rÃ¼nlerde entegre etmiÅŸtir. MCP YÃ¼rÃ¼tme Komitesiâ€™ne katÄ±larak protokolÃ¼n gÃ¼venli standardizasyonunu desteklemiÅŸtir. OAuth 2.1 tabanlÄ± yeni kimlik doÄŸrulama sistemi geliÅŸtirilmiÅŸtir.
+  **Bağlantı:** [https://blogs.microsoft.com/blog/2025/05/19/microsoft-build-2025-the-age-of-ai-agents-and-building-the-open-agentic-web/](https://blogs.microsoft.com/blog/2025/05/19/microsoft-build-2025-the-age-of-ai-agents-and-building-the-open-agentic-web/)
+  **Türkçe Özet:** Microsoft, MCP’yi GitHub, Copilot Studio, Dynamics 365 ve Azure AI Foundry gibi ürünlerde entegre etmiştir. MCP Yürütme Komitesi’ne katılarak protokolün güvenli standardizasyonunu desteklemiştir. OAuth 2.1 tabanlı yeni kimlik doğrulama sistemi geliştirilmiştir.
 
-- **Konu BaÅŸlÄ±ÄŸÄ±:** Introducing the Data Commons MCP Server
+- **Konu Başlığı:** Introducing the Data Commons MCP Server
   **Kaynak/Kurum & Tarih:** Google Developers Blog, 2025-09
-  **BaÄŸlantÄ±:** [https://developers.googleblog.com/en/datacommonsmcp/](https://developers.googleblog.com/en/datacommonsmcp/)
-  **TÃ¼rkÃ§e Ã–zet:** Google, kamu veri setlerini MCP sunucusu Ã¼zerinden AI ajanlarÄ±na aÃ§mÄ±ÅŸtÄ±r. Bu yaklaÅŸÄ±m, LLMâ€™lerin gÃ¼venilir verilere eriÅŸmesini ve halÃ¼sinasyon oranÄ±nÄ±n azalmasÄ±nÄ± saÄŸlar. Data Commons MCP sunucusu Gemini CLI ve Cloud Agent Kit ile entegre Ã§alÄ±ÅŸÄ±r.
+  **Bağlantı:** [https://developers.googleblog.com/en/datacommonsmcp/](https://developers.googleblog.com/en/datacommonsmcp/)
+  **Türkçe Özet:** Google, kamu veri setlerini MCP sunucusu üzerinden AI ajanlarına açmıştır. Bu yaklaşım, LLM’lerin güvenilir verilere erişmesini ve halüsinasyon oranının azalmasını sağlar. Data Commons MCP sunucusu Gemini CLI ve Cloud Agent Kit ile entegre çalışır.
 
-- **Konu BaÅŸlÄ±ÄŸÄ±:** A New Frontier for Network Engineers
+- **Konu Başlığı:** A New Frontier for Network Engineers
   **Kaynak/Kurum & Tarih:** Cisco Blogs, 2025-05
-  **BaÄŸlantÄ±:** [https://blogs.cisco.com/learning/a-new-frontier-for-network-engineers-agentic-ai-that-understands-your-network](https://blogs.cisco.com/learning/a-new-frontier-for-network-engineers-agentic-ai-that-understands-your-network)
-  **TÃ¼rkÃ§e Ã–zet:** MCP, aÄŸ mÃ¼hendisliÄŸinde AI asistanlarÄ±nÄ±n gerÃ§ek aÄŸ topolojisine uygun Ã§Ã¶zÃ¼mler Ã¼retmesini saÄŸlar. JSON formatÄ±nda baÄŸlamsal aÄŸ verisi LLMâ€™e aktarÄ±lÄ±r, bÃ¶ylece model kurumun Ã¶zgÃ¼n altyapÄ±sÄ±na uyumlu yapÄ±landÄ±rmalar Ã¼retir.
+  **Bağlantı:** [https://blogs.cisco.com/learning/a-new-frontier-for-network-engineers-agentic-ai-that-understands-your-network](https://blogs.cisco.com/learning/a-new-frontier-for-network-engineers-agentic-ai-that-understands-your-network)
+  **Türkçe Özet:** MCP, ağ mühendisliğinde AI asistanlarının gerçek ağ topolojisine uygun çözümler üretmesini sağlar. JSON formatında bağlamsal ağ verisi LLM’e aktarılır, böylece model kurumun özgün altyapısına uyumlu yapılandırmalar üretir.
 
-- **Konu BaÅŸlÄ±ÄŸÄ±:** What is Model Context Protocol (MCP)?
+- **Konu Başlığı:** What is Model Context Protocol (MCP)?
   **Kaynak/Kurum & Tarih:** IBM Think Blog, 2025-05
-  **BaÄŸlantÄ±:** [https://www.ibm.com/think/topics/model-context-protocol](https://www.ibm.com/think/topics/model-context-protocol)
-  **TÃ¼rkÃ§e Ã–zet:** IBM, MCPâ€™yi AI ile harici servisler arasÄ±nda evrensel baÄŸlantÄ± katmanÄ± olarak tanÄ±mlar. LLMâ€™lerin eÄŸitim verisi sÄ±nÄ±rÄ±nÄ± aÅŸarak API ve veri tabanlarÄ±na gÃ¼venli eriÅŸmesini saÄŸlar. MCP, USB-C benzeri bir â€œstandart arayÃ¼zâ€ olarak gÃ¶rÃ¼lÃ¼r.
+  **Bağlantı:** [https://www.ibm.com/think/topics/model-context-protocol](https://www.ibm.com/think/topics/model-context-protocol)
+  **Türkçe Özet:** IBM, MCP’yi AI ile harici servisler arasında evrensel bağlantı katmanı olarak tanımlar. LLM’lerin eğitim verisi sınırını aşarak API ve veri tabanlarına güvenli erişmesini sağlar. MCP, USB-C benzeri bir “standart arayüz” olarak görülür.
 
-- **Konu BaÅŸlÄ±ÄŸÄ±:** WTF is Model Context Protocol (MCP) and why should publishers care?
+- **Konu Başlığı:** WTF is Model Context Protocol (MCP) and why should publishers care?
   **Kaynak/Kurum & Tarih:** Digiday, 2025-09
-  **BaÄŸlantÄ±:** [https://digiday.com/media/wtf-is-model-context-protocol-mcp-and-why-should-publishers-care/](https://digiday.com/media/wtf-is-model-context-protocol-mcp-and-why-should-publishers-care/)
-  **TÃ¼rkÃ§e Ã–zet:** YayÄ±ncÄ±lÄ±k sektÃ¶rÃ¼ iÃ§in MCPâ€™nin â€œAI Ã§aÄŸÄ±nÄ±n robots.txt dosyasÄ±â€ olabileceÄŸi vurgulanÄ±r. YayÄ±ncÄ±lar MCP sunucularÄ± Ã¼zerinden hangi iÃ§eriklerin AI ajanlarÄ±na aÃ§Ä±lacaÄŸÄ±nÄ± belirleyebilir. Bu sayede hem veri gizliliÄŸi hem gelir modelleri kontrol altÄ±na alÄ±nÄ±r.
+  **Bağlantı:** [https://digiday.com/media/wtf-is-model-context-protocol-mcp-and-why-should-publishers-care/](https://digiday.com/media/wtf-is-model-context-protocol-mcp-and-why-should-publishers-care/)
+  **Türkçe Özet:** Yayıncılık sektörü için MCP’nin “AI çağının robots.txt dosyası” olabileceği vurgulanır. Yayıncılar MCP sunucuları üzerinden hangi içeriklerin AI ajanlarına açılacağını belirleyebilir. Bu sayede hem veri gizliliği hem gelir modelleri kontrol altına alınır.
 
 ---
 
-### Alanlara GÃ¶re YoÄŸunluk Analizi
+### Alanlara Göre Yoğunluk Analizi
 
-- **En YoÄŸun Alanlar:** Yapay zekÃ¢, bilgi teknolojileri, gÃ¼venlik
-- **GeliÅŸmekte Olan Alanlar:** AÄŸ mÃ¼hendisliÄŸi, veri bilimi, dijital medya
-- **Potansiyel Alanlar:** Savunma, biyoteknoloji (henÃ¼z erken aÅŸama)
+- **En Yoğun Alanlar:** Yapay zekâ, bilgi teknolojileri, güvenlik
+- **Gelişmekte Olan Alanlar:** Ağ mühendisliği, veri bilimi, dijital medya
+- **Potansiyel Alanlar:** Savunma, biyoteknoloji (henüz erken aşama)
 
-MCPâ€™nin en Ã§ok AI altyapÄ±sÄ±, yazÄ±lÄ±m entegrasyonu ve gÃ¼venlik konularÄ±nda ele alÄ±ndÄ±ÄŸÄ± gÃ¶rÃ¼lÃ¼r. Cisco, Google ve IBM gibi ÅŸirketler kendi alanlarÄ±nda MCPâ€™yi uygulamaya baÅŸlamÄ±ÅŸ; akademi ise Ã¶zellikle gÃ¼venlik, standardizasyon ve Ã§ok-etmenli koordinasyon boyutlarÄ±nÄ± araÅŸtÄ±rmaktadÄ±r.
+MCP’nin en çok AI altyapısı, yazılım entegrasyonu ve güvenlik konularında ele alındığı görülür. Cisco, Google ve IBM gibi şirketler kendi alanlarında MCP’yi uygulamaya başlamış; akademi ise özellikle güvenlik, standardizasyon ve çok-etmenli koordinasyon boyutlarını araştırmaktadır.
+
+---
+
+### Genel Değerlendirme
+
+Model Context Protocol (MCP), 2024 sonunda tanıtılmasından bu yana AI ajanlarının dış dünyayla güvenli ve standart bir biçimde iletişim kurmasını sağlamıştır.
+2025 itibarıyla MCP, **Anthropic**, **OpenAI**, **Microsoft**, **Google**, **IBM** ve **Cisco** gibi büyük oyuncular tarafından benimsenmiş, çok sayıda akademik çalışma da protokolün güvenlik ve performans yönlerini ele almıştır.
+Protokol, AI ajan ekosistemini “tek tip bağlantı standardı” altında birleştirirken, aynı zamanda yeni güvenlik risklerini de beraberinde getirmiştir.
+Akademik çözümler (ör. MCP-Guard, MCP-AttackBench) bu riskleri azaltmaya yöneliktir.
+Gelecekte MCP’nin tıpkı **USB-C** veya **HTTP** gibi evrensel bir altyapı standardına dönüşmesi beklenmektedir; bu da yapay zekâ sistemlerinin bağlam farkındalığını, güvenliğini ve birlikte çalışabilirliğini köklü biçimde geliştirecektir.
 
 ---
 
-### Genel DeÄŸerlendirme
-
-Model Context Protocol (MCP), 2024 sonunda tanÄ±tÄ±lmasÄ±ndan bu yana AI ajanlarÄ±nÄ±n dÄ±ÅŸ dÃ¼nyayla gÃ¼venli ve standart bir biÃ§imde iletiÅŸim kurmasÄ±nÄ± saÄŸlamÄ±ÅŸtÄ±r.
-2025 itibarÄ±yla MCP, **Anthropic**, **OpenAI**, **Microsoft**, **Google**, **IBM** ve **Cisco** gibi bÃ¼yÃ¼k oyuncular tarafÄ±ndan benimsenmiÅŸ, Ã§ok sayÄ±da akademik Ã§alÄ±ÅŸma da protokolÃ¼n gÃ¼venlik ve performans yÃ¶nlerini ele almÄ±ÅŸtÄ±r.
-Protokol, AI ajan ekosistemini â€œtek tip baÄŸlantÄ± standardÄ±â€ altÄ±nda birleÅŸtirirken, aynÄ± zamanda yeni gÃ¼venlik risklerini de beraberinde getirmiÅŸtir.
-Akademik Ã§Ã¶zÃ¼mler (Ã¶r. MCP-Guard, MCP-AttackBench) bu riskleri azaltmaya yÃ¶neliktir.
-Gelecekte MCPâ€™nin tÄ±pkÄ± **USB-C** veya **HTTP** gibi evrensel bir altyapÄ± standardÄ±na dÃ¶nÃ¼ÅŸmesi beklenmektedir; bu da yapay zekÃ¢ sistemlerinin baÄŸlam farkÄ±ndalÄ±ÄŸÄ±nÄ±, gÃ¼venliÄŸini ve birlikte Ã§alÄ±ÅŸabilirliÄŸini kÃ¶klÃ¼ biÃ§imde geliÅŸtirecektir.
-
 ---
+
+## Rapor
+
+### Giriş
+
+**Model Context Protocol (MCP)**, Anthropic şirketi tarafından açık kaynak olarak geliştirilmiş bir protokoldür ve büyük dil modellerini (Large Language Models - *LLM*) harici veri kaynakları ve araçlarla entegre etmeyi amaçlar. Bir bakıma, yapay zeka uygulamaları için **USB-C standardı** gibi çalışarak LLM tabanlı uygulamaların dış sistemlerle bağlanması için standart bir yol sağlar. Bu araştırmanın amacı, MCP protokolünün teknik mimarisi ile ağ içi işleyiş modelini inceleyerek yazılım geliştirme süreçlerindeki kullanım biçimlerini ortaya koymak ve protokolün siber güvenlik bağlamında oluşturabileceği potansiyel riskleri değerlendirmektir. Bu doğrultuda, MCP’nin temel hedefleri ve kullanım alanları, mimari yapısı ve veri iletim mekanizması, hangi katmanda çalıştığı ve bunun sağladığı avantajlar ile protokolün açık kaynak olmasının güvenliğe etkileri ele alınacaktır. Ayrıca MCP’ye yönelik olası saldırı türleri (örn. Ortadaki Adam, Replay, Enjeksiyon) incelenerek Anthropic’in (Antopic) uyguladığı güvenlik önlemlerinin yeterliliği değerlendirilecek ve **MCP’nin güvenli bir şekilde uygulanabilmesi için öneriler** sunulacaktır.
+
+<img width="1207" height="799" alt="resim" src="https://github.com/user-attachments/assets/bdf1510b-66f6-427b-9562-f8653e73d66e" />
+
+
+### MCP Protokolünün Amacı ve Kullanım Alanları
+
+MCP protokolünün temel amacı, LLM tabanlı yapay zeka uygulamaları ile harici araçlar, veri kaynakları ve hizmetler arasında **standart bir bağlamsal iletişim** sağlamaktır. Bu sayede bir yapay zeka modeli, kısıtlı kendi bilgi havuzunun ötesine geçerek güncel verilere erişebilir, çeşitli eylemleri tetikleyebilir veya harici uygulamalardan sonuçlar alabilir. Örneğin GitHub Copilot gibi bir kod yardımı aracı, MCP üzerinden GitHub’ın kendi hizmetleriyle veya üçüncü parti araçlarla entegre olarak daha ileri işlemler yapabilmektedir. Anthropic’in Claude modeli gibi bir LLM de MCP sayesinde harici “araçlar” kullanarak ide ortamında dosya sistemine erişmek veya bir hata izleme (sentry) platformundan veri çekmek gibi eylemlere girişebilir.
+
+<img width="960" height="540" alt="resim" src="https://github.com/user-attachments/assets/ac7686e8-9c5d-4a30-be7c-9fa1f7328325" />
+
+MCP protokolü, geniş bir yelpazedeki kullanım senaryolarını mümkün kılarak yapay zekâ uygulamalarının yeteneklerini artırır. Aşağıda MCP’nin sağlayabildiği bazı olanaklar listelenmiştir:
+
+* **Kişisel Asistan Entegrasyonu:** Yapay zekâ “agent”ları kullanıcıların Google Takvimi veya Notion hesaplarına bağlanarak daha kişiselleştirilmiş asistanlar gibi davranabilir. Örneğin, takvimden randevuları okuma veya yeni notlar oluşturma gibi işlemleri gerçekleştirebilir.
+* **Tasarım'dan Koda Otomasyon:** Claude Code gibi bir AI aracı, MCP aracılığıyla bir Figma tasarımını analiz ederek komple bir web uygulamasını otomatik olarak oluşturabilir. Bu, tasarım ve geliştirme süreçlerini hızlandıran bir entegrasyon örneğidir.
+* **Kurumsal Veri Erişimi:** Kurum içindeki bir sohbet botu, MCP üzerinden organizasyonun farklı veritabanlarına aynı anda bağlanabilir ve kullanıcının doğal dilde sorduğu sorulara dayanarak gerçek zamanlı veri analizi yapabilir. Bu sayede tek bir arayüz üzerinden birden çok veri kaynağı taranabilir.
+* **Fiziksel Cihaz Kontrolü:** Bir yapay zekâ modeli, MCP ile Blender gibi bir 3D tasarım aracına ve bir 3B yazıcıya bağlanarak, doğal dil komutlarla 3D model tasarlayıp bunu yazıcıdan basabilir.
+
+Yukarıdaki örnekler MCP’nin **genel amaçlı bir entegrasyon altyapısı** olarak ne denli esnek kullanılabildiğini göstermektedir. Son kullanıcı açısından bu, yapay zekâ destekli uygulamaların kendi verilerine erişip gerekirse kullanıcı adına eyleme geçebilen daha yetenekli asistanlar haline gelmesi demektir. Geliştiriciler için ise MCP, bir yapay zekâ uygulamasına entegrasyon noktaları eklerken zaman kazandıran ve karmaşıklığı azaltan standart bir arayüz sunmaktadır.
+
+### MCP'nin Mimari Yapısı ve Veri İletim Mekanizması
+
+
+<img width="840" height="328" alt="resim" src="https://github.com/user-attachments/assets/ba600697-942e-426f-ad1c-839875ef9772" />
+
+
+MCP istemci ve sunucularının LLM ile etkileşimini gösteren örnek bir akış diagramı. Kullanıcı isteği, istemci tarafından LLM'ye iletilir; LLM uygun aracı seçerek sunucuya çağrı yapar ve sonuç yine LLM üzerinden kullanıcıya döner.*
+
+MCP protokolü, istemci-sunucu modeline dayalı **iki katmanlı bir mimariye** sahiptir. Katmanlardan ilki **veri katmanı** (*data layer*) olup istemci ile sunucu arasındaki mesajların yapısını ve anlamını tanımlayan bir JSON-RPC 2.0 tabanlı protokoldür. Bu katmanda bağlantının başlatılması, sürdürülmesi ve sonlandırılması gibi yaşam döngüsü yönetimi; sunucunun sağlayabileceği *araçlar* (tools) ve *kaynaklar* (resources) gibi işlevler; istemcinin LLM'den çıktı üretmesini talep etme veya kullanıcı girdisi isteme gibi kabiliyetler ve uyarı/iletişim amaçlı *bildirimler* yer alır. İkinci katman olan **taşıma katmanı** (*transport layer*), veri alışverişinin hangi iletişim kanalları üzerinden ve nasıl yapılacağını tanımlar; bağlantı kurulumu, mesaj çerçeveleri ve taraflar arasında kimlik doğrulama bu katmanda ele alınır. MCP’nin tasarımında mevcut iki taşıma yöntemi şunlardır:
+
+* **STDIO Taşıması:** İstemci ve sunucunun aynı makinede yerel olarak çalıştığı durumlarda standart girdi/çıktı akışı üzerinden iletişim kurulabilir. Bu yöntem, herhangi bir ağ protokolü kullanmadığı için ek gecikme veya ağ trafiği oluşturmaz; dolayısıyla maksimum performans sağlar ve özellikle bir IDE içinde çalıştırılan yerel araçlar için idealdir.
+* **Akış Destekli HTTP Taşıması:** İstemci ile sunucu arasında HTTP üzerinden iletişim kurulmasını sağlar. İstemci, sunucuya JSON tabanlı isteklerini HTTP POST ile gönderirken; sunucu gerektiğinde **Server-Sent Events (SSE)** kullanarak istemciye akan (*streaming*) yanıtlar iletebilir. Bu yöntem uzaktaki (bulut veya internet üzerindeki) MCP sunucularına bağlanmak için kullanılır ve standart HTTP kimlik doğrulama mekanizmalarını destekler (taşıyıcı jetonlar, API anahtarları veya özel başlıklar gibi). Uzaktan iletişimde verinin gizliliği ve bütünlüğü için MCP üzerinden **HTTPS (TLS şifrelemesi)** kullanılması önerilmektedir.
+
+Yukarıdaki mimari sayesinde MCP, birden fazla sunucuya aynı anda bağlanabilen esnek bir istemci-çoklu sunucu topolojisi oluşturur. Bu yapıda **MCP İstemcisi**, LLM barındıran uygulamanın içinde çalışarak her bir MCP sunucusuyla birebir bağlantı kuran bileşendir. **MCP Sunucusu** ise harici bağlam bilgisini sağlayan bağımsız bir süreçtir; dosya sistemi, veritabanı, harici API gibi kaynaklara erişebilir ve bunları istemciye bir “araç” arayüzüyle sunar. Örneğin Visual Studio Code editörü bir MCP **host** uygulaması olarak düşünülebilir; VS Code, Sentry hata izleme sistemi için bir MCP sunucusuna bağlandığında (uzak bir sunucu), aynı anda yerel dosya sistemi erişimi sunan başka bir MCP sunucusuna da bağlanabilir. Bu durumda VS Code içinde her sunucu bağlantısı için ayrı bir MCP istemci nesnesi çalışır ve her biri ilgili sunucusundan veri çeker.
+
+<img width="836" height="512" alt="resim" src="https://github.com/user-attachments/assets/d0cdaa6e-aff0-4d03-ab74-bbd6107c5ff1" />
+
+**Veri iletim mekanizması**, istemci, sunucu ve LLM arasındaki etkileşimle gerçekleşir. Bu akışı adım adım incelemek gerekirse:
+
+1. **Kullanıcı isteği:** Son kullanıcı, MCP entegrasyonuna sahip AI uygulamasından (örneğin bir sohbet arayüzü veya IDE) bir talepte bulunur. Bu talep doğal dilde bir komut, soru veya görev tanımı olabilir ve öncelikle **MCP istemcisi** tarafından ele alınır.
+2. **LLM ile planlama:** MCP istemcisi, bağlı olduğu MCP sunucularının hangi araçları sağladığı bilgisini elinde tutar. Kullanıcının isteğini alır almaz istemci, sunuculardan aldığı bu yetenek bilgilerini de **LLM’ye aktarır**. Başka bir deyişle, LLM’ye *“şu şu araçlar mevcut”* bilgisini vererek kullanıcı talebini çözümler. LLM, verilen görevi yerine getirmek için hangi araca ihtiyaç olduğunu ve bu araca hangi parametrelerle çağrı yapılacağını kararlaştırır ve istemciye bir yanıt üretir.
+3. **Sunucuya istek:** LLM’nin yanıtına göre MCP istemcisi, ilgili aracı barındıran MCP **sunucusuna** bir istek gönderir. Bu istek, belirli bir aracı çalıştırma komutunu ve gerekli parametreleri içerir. İletişim, yerel sunucu ise STDIO üzerinden, uzak sunucu ise HTTP istekleri ile gerçekleşir.
+4. **Sunucu işlemi ve yanıt:** MCP sunucusu, kendisine iletilen komutu gerçekleştirir. Örneğin bir dosya okuma aracına parametre olarak bir dosya yolu verildiyse, sunucu dosyayı okuyup içeriğini döndürür. Sunucu, işlemin sonucunu (ya da hata çıktıysa hata bilgisini) MCP istemcisine geri gönderir.
+5. **LLM'nin sonuç üretmesi:** MCP istemcisi sunucudan aldığı ham sonucu tekrar LLM’ye iletir (veya LLM zaten önceki adımda bu sonucu bekliyor olabilir). LLM, sunucudan gelen veriyi kullanarak kullanıcıya verilecek nihai cevabı oluşturur. Örneğin, dosya içeriği istenmişse bunu kullanıcıya uygun biçimde sunan bir metin cevabı üretir.
+6. **Kullanıcıya sunum:** Son olarak MCP istemcisi, LLM’nin ürettiği cevabı alır ve uygulama arayüzü üzerinden kullanıcıya gösterir. Kullanıcı, talebinin sonucunu insan tarafından yazılmışçasına doğal bir dilde almış olur.
+
+Bu işlem döngüsü, MCP sayesinde LLM tabanlı bir sistemin **etkin bir araç kullanıcısına** dönüşmesini sağlamaktadır. Önemle vurgulanmalıdır ki MCP, LLM ile araçlar arasında doğrudan bir bağlantı kurmaz; bunun yerine istemci ve sunucu aracılığıyla kontrollü bir entegrasyon gerçekleştirir. İstemci tarafı LLM ile konuşmaktan sorumlu iken, sunucu tarafı gerçek dünya araçlarını çalıştırma görevini üstlenir. Bu ayrım, güvenlik ve kontrol açısından da önemlidir çünkü LLM’nin her şeye doğrudan erişimi olmaz; sadece istemcinin sunduğu arayüz dahilinde eylem yapabilir.
+
+### Protokolün Katman Seviyesi ve Avantajları
+
+MCP protokolü **uygulama katmanında** çalışan bir protokoldür. Yani OSI modeline göre bakıldığında, TCP/IP gibi taşıma katmanı protokollerinin üzerinde konumlanır ve uygulamalar arası veri alışverişinin anlamını tanımlar. Bu yüksek seviyeli konum, MCP’ye önemli avantajlar kazandırmaktadır. Öncelikle, uygulama katmanı protokolü olduğu için MCP mesajları **insan tarafından okunabilir JSON** formatında tanımlanmıştır ve bu sayede dil agnostik bir şekilde birden fazla programlama dilinde kolaylıkla uygulanabilir (nitekim halihazırda MCP için Python, TypeScript, Java, C#, Go, Rust gibi farklı dillerde SDK’lar mevcuttur). Protokol mesajlarının JSON-RPC standardını kullanması, yapılandırılmış bir iletişim sağlayarak hem istemci hem sunucu tarafında uygulanmasını ve hata ayıklamasını kolaylaştırır.
+
+MCP’nin taşıma bağımsız bir üst düzey protokol olarak tasarlanmış olması, **esneklik** ve **uyumluluk** avantajı sağlar. Protokol, altında yatan taşıma katmanını soyutlayabildiği için aynı veri yapısını ister yerel ister uzak senaryolarda iletebilir. Örneğin, bir geliştirici MCP sunucusunu başlangıçta yerel STDIO modunda çalıştırıp test edebilir; daha sonra minimal değişiklikle aynı sunucuyu uzak bir HTTP servis olarak dağıtabilir. Bu sayede protokol, gelişen ihtiyaçlara göre ölçeklenebilir bir yapı sunar. Ayrıca MCP, doğrudan IP seviyesinde yeni bir protokol icat etmeyip HTTP gibi yaygın bir uygulama protokolünü opsiyon olarak kullandığı için mevcut altyapılarla **uyumludur** – güvenlik duvarları, yük dengeleyiciler veya HTTPS şifrelemesi gibi halihazırda oturmuş mekanizmaları tekrar keşfetmeye gerek kalmadan kullanabilir.
+
+Taşıma katmanının soyutlanmasıyla gelen bir diğer avantaj, **güvenli iletişim ve kimlik doğrulama konusunda standartların yeniden kullanılmasıdır**. MCP, uzak sunucularla haberleşirken HTTPS üzerinden çalışarak TLS şifrelemesini devreye sokabilmekte ve HTTP’nin oturmuş kimlik doğrulama yöntemlerini (OAuth erişim tokenları, API anahtarları, vb.) aynen kullanabilmektedir. Bu, protokolün güvenlik konusunda güvenilir ve test edilmiş yöntemlerden faydalanmasını sağlar. Örneğin, Anthropic varsayılan olarak MCP yetkilendirmesi için OAuth 2.0 tabanlı bir token mekanizmasını öngörmüştür. Son kullanıcı açısından, MCP trafikleri tıpkı bir web trafiği gibi güvenli kanaldan akabildiği için ağ dinlemesi veya benzeri riskler azaltılmaktadır. Öte yandan yerel taşıma seçeneği (STDIO), ağ üzerinden veri geçirmediği için özellikle tek makine üzerinde çalışan senaryolarda **azami performans ve güvenlik** (dış saldırı yüzeyinin olmaması nedeniyle) sunar.
+
+Özetle, MCP’nin uygulama katmanında konumlanması ve altındaki taşıma katmanını esnek tutması protokolü geniş bir kullanım yelpazesinde pratik hale getirmektedir. Bu sayede hem *platform bağımsızlığı* hem de *güvenlik ve performans* açısından geliştiricilere önemli kolaylıklar sağlar.
+
+### MCP'nin Açık Kaynak Yapısının Güvenliğe Etkileri
+
+MCP protokolünün **açık kaynak** olması, güvenlik açısından çift yönlü etkilere sahiptir. Olumlu tarafta, protokolün kaynak kodu ve spesifikasyonlarının açık olması, geniş bir topluluk tarafından incelenebilmesini ve katkı yapılabilmesini mümkün kılar. Nitekim MCP hızla popülerlik kazanırken, çeşitli güvenlik araştırmacıları ve şirketler de protokolü mercek altına almıştır. Bu kolektif inceleme sayesinde protokoldeki potansiyel zayıflıklar erken aşamada tespit edilip düzeltilebilmektedir. Topluluk üyeleri mevcut yetkilendirme mekanizmasının kurumsal uygulamalarla çelişen noktalarını fark etmiş ve yetkilendirme spesifikasyonunun iyileştirilmesi için girişimde bulunmuştur. Bu sayede, protokol geliştikçe güvenlik boyutunda da güncel en iyi uygulamalarla uyumlu hale gelmesi sağlanmaktadır.
+
+Açık kaynağın bir diğer avantajı, *güvenlikte şeffaflık* sağlamasıdır. MCP ekosistemindeki istemci ve sunucu uygulamaları açık kaynak kodlu olduğu için, geliştiriciler veya kurumlar bu kodları inceleyerek içlerinde zararlı bir işlev olup olmadığını denetleyebilir. Kapalı kutu bir yazılıma kıyasla, açık kodlu bir MCP sunucusunun ne yaptığı görülebilir olduğu için sürpriz istenmeyen davranışlar riski teorik olarak daha düşüktür. Dahası, ekosistemdeki popüler MCP bileşenleri genellikle dijital imza ile yayınlanmakta veya bütünlük kontrolüne tabi tutulmaktadır; bu da koda dışarıdan zararlı bir müdahale yapılmadığını doğrulamayı mümkün kılar. Geliştiricilerin de kendi yayınladıkları MCP sunucularını imzalamaları ve kullanıcıların bu imzaları doğrulamaları tavsiye edilmektedir.
+
+Öte yandan, açık kaynak olmanın getirdiği bazı **güvenlik riskleri** de vardır. Her şeyden önce, MCP protokolü tamamen açık bir ekosistem olduğundan, kötü niyetli aktörler de protokolü kullanarak zararlı MCP sunucuları geliştirebilir ve bunları topluluk içinde paylaşabilir. Örneğin, bir saldırgan ilk bakışta yararlı görünen bir MCP sunucusu (belki bir hava durumu aracı veya takvim aracı) yayınlayıp kullanıcıları bunu kurmaya ikna edebilir; ancak daha sonra bir güncelleme ile bu sunucuya gizlice hassas bilgileri toplayan veya yetkisiz komutlar çalıştıran işlevler ekleyebilir. Bu tür **“araç enjeksiyonu”** diyebileceğimiz senaryolarda, açık kaynak kod başlangıçta temiz olsa bile ileride kasıtlı olarak suistimal edilebilir hale getirilebilir. Benzer şekilde, sunucunun tanıttığı araçların ismini ve tanımını yanıltıcı seçmek de mümkün olduğundan, kötü niyetli bir geliştirici masum görünen bir aracı aslında farklı ve tehlikeli işler yapmak için tasarlayabilir. Açık kaynak dünyasında kullanıcıların her buldukları projeye güvenmemeleri, özellikle de MCP gibi *kod çalıştırma yeteneği olan* sunucular söz konusuysa, son derece kritiktir.
+
+Açık kaynağın bir diğer zorluğu da **tedarik zinciri güvenliği** ile ilgilidir. MCP istemci ve sunucuları da sonuçta yazılım bileşenleridir ve paket yönetim sistemleri üzerinden dağıtılır. Saldırganlar popüler MCP paketlerinin isimlerini taklit eden (typosquatting) zararlı paketler yayınlayabilir veya geliştiricilerin hesaplarını ele geçirip zararlı güncellemeler çıkarabilir. Bu risk, genel olarak tüm açık kaynak projelerinde mevcuttur ve MCP de bir istisna değildir. Nitekim, MCP bileşenlerinin güvenliği için tavsiye edilen uygulamalar arasında *Statik Kod Analizi (SAST)* ve *Yazılım Bileşeni Analizi (SCA)* araçlarının kullanılması, bağımlılıkların bilinen zafiyetlere karşı taranması gibi süreçler sayılmaktadır. Proje geliştirme süreçlerinde bu tür güvenlik denetimlerinin uygulanması, açık kaynak olmanın getirdiği riskleri azaltmaya yardımcı olur.
+
+Sonuç olarak, MCP’nin açık kaynak yapısı güvenlikte hem bir **imkan** hem de bir **sorumluluk** doğurmaktadır. Doğru yönetildiğinde, geniş bir katılımcı kitlesinin katkısıyla daha güvenli bir protokol gelişimi mümkün olmakta; ancak bu açıklık aynı zamanda suistimale açık bir ekosistem yarattığı için, kullanıcıların ve geliştiricilerin güvenlik farkındalığının yüksek olması gerekmektedir.
+
+### Potansiyel Saldırı Senaryoları
+
+MCP protokolü ve onu kullanan uygulamalar, tasarım itibariyle çeşitli saldırı türlerine maruz kalabilir. Bu bölümde, özellikle **Ortadaki Adam (Man-in-the-Middle)**, **Replay (Yeniden Oynatma)** ve **Enjeksiyon** saldırı vektörleri üzerinde durulacaktır:
+
+* **Ortadaki Adam Saldırısı (MITM):** Bir MITM saldırısında, saldırgan istemci ile sunucu arasındaki trafiği gizlice dinleyip değiştirebilir. MCP, uzak sunucu bağlantılarında HTTP tabanlı iletişim kullandığı için, **şifrelenmemiş bir bağlantı (HTTP)** üzerinden iletişim kurulursa ciddi bir MITM riski oluşur. Örneğin, yerel ağda bir saldırgan MCP istemcisinin sunucuya giden trafiğini yakalayıp başka bir sunucuya yönlendirebilir veya içerik enjeksiyonu yapabilir. Bu nedenle MCP kullanımında **TLS şifrelemesi (HTTPS)** şarttır; aksi halde oturum açılış bilgilerinden, iletilen bağlam verisine kadar her şey üçüncü şahıslarca görülebilir veya değiştirilebilir. MITM sadece gizli dinleme değil, aynı zamanda istemci ile sunucu arasına girerek sahte yanıtlar verme veya istemciden gelen isteği bloklama gibi etkiler de yaratabilir. Uzak sunucularla iletişimde HTTPS kullanmak ve sunucu sertifikasını doğrulamak, bu tür saldırıların önlenmesinde temel önlemdir.
+
+* **Replay Saldırıları:** Replay (yeniden oynatma) saldırısında, ağ trafiğini yakalayan bir saldırgan daha sonra bu trafiği tekrar göndererek sistemi kandırmaya çalışır. MCP protokolünde istemci-sunucu mesajları genellikle belirli bir isteğe yanıt ilişkisi içinde olduğundan ve protokol durumsal bir oturum yapısı barındırdığından, klasik anlamda replay yapmanın etkisi sınırlı olabilir. Ancak özellikle kimlik doğrulama veya yetki bilgilerinin tekrar kullanılması riski her zaman vardır. Örneğin bir saldırgan, bir MCP isteğini üzerindeki OAuth erişim jetonu ile birlikte ele geçirirse, bu isteği değiştirip yeniden göndermek suretiyle istenmeyen işlemler yaptırabilir. MCP spesifikasyonunda versiyon pazarlığı ve oturum başlatma mekanizmaları olsa da, **anti-replay için özel bir nonce veya zaman damgası kullandığına dair** açık bir bilgi olmayabilir. Dolayısıyla replay riskinin esasen **taşıma katmanının güvenliği** ile bertaraf edildiğini varsayabiliriz (örn. TLS içindeki oturum kimliği ve kısa ömürlü token kullanımı). Yine de, MCP sunucularının kritik işlemler için isteklerin tekilliğini kontrol etmesi veya aynı token’ın art arda kullanımını kısıtlaması gibi önlemler düşünülebilir. Sonuç itibariyle, replay saldırılarına karşı **en iyi savunma**, trafiğin şifrelenmesi ve geçerlilik süresi sınırlı, tek seferlik yetkilendirme jetonları kullanılmasıdır.
+
+* **Enjeksiyon Saldırıları:** MCP ekosisteminde *enjeksiyon* kavramı birden fazla boyutta karşımıza çıkar:
+
+  * **Komut Enjeksiyonu:** Birçok MCP sunucusu, alt seviyede kabuk komutları veya sistem çağrıları çalıştırarak görevlerini yerine getirir (özellikle yerel sunucular). Eğer sunucu, kullanıcıdan veya LLM’den gelen girdileri uygun şekilde filtrelemez ve doğrudan bir komut satırına aktarırsa, saldırganlar bu durumu **komut enjeksiyonu** için kullanabilir. Örneğin, bazı MCP sunucu kodlarında, kullanıcı bildirim başlığı oluşturulurken gelen değerin doğrudan `notify-send` komutuna parametre verildiği görülebilir; burada yeterli denetim olmadığından potansiyel bir komut enjeksiyonu açıklığı oluşabilir. Kötü niyetli bir aktör, özel hazırlanmış girdilerle bu açığı tetikleyerek sunucunun yetkileriyle rastgele komutlar çalıştırabilir. Bu tür vakalar, özellikle yerel MCP sunucularının kullanıcı hesabı haklarıyla çalıştığı senaryolarda **tam sistem tehlikeye atılması** ile sonuçlanabilir. Dolayısıyla MCP sunucusu geliştiricilerinin, çalıştırdıkları komutları ve bu komutlara verdikleri argümanları çok sıkı şekilde denetlemeleri, gerekirse girilen değerleri beyaz liste yöntemiyle filtrelemeleri kritiktir. Ayrıca, yerel sunucuların bir **sandbox (korunaklı ortam)** içinde, erişim izinleri kısıtlanmış şekilde çalıştırılması önerilmektedir.
+  * **Prompt Enjeksiyonu:** Bu saldırı türü doğrudan protokolün teknik altyapısını değil, LLM’nin zafiyetini hedef alır ancak MCP bağlamında özel bir önem kazanır. MCP, LLM’nin dış araçları kullanmasına olanak sağladığı için, kötü niyetli bir yönlendirme (prompt) ile LLM’yi tehlikeli bir aracı çalıştırmaya ikna etmek mümkün hale gelebilir. Örneğin, bir saldırgan kullanıcıyı kandırarak MCP istemcisine girdiği komutun içine gizlenmiş zararlı bir talimat koydurabilir. LLM bu girdiyle çalışırken, görünürde masum görünen isteği gerçekleştirmenin yanında saldırganın arzusuyla ek bir işlem de başlatabilir (örneğin, “talep edilen yeni kullanıcı hesabını oluşturmanın” yanı sıra bir de saldırgan için yüksek yetkili bir hesap oluşturma). Bu tür prompt enjeksiyonları, özellikle LLM yanıtlarına koşulsuz güvenilip kullanıcı onayı aranmadan eyleme döküldüğünde ciddi hasarlara yol açabilir. Bu nedenle, MCP istemcileri kritik işlemleri gerçekleştirmeden önce mümkün olduğunca **kullanıcıdan onay almalıdır** veya LLM'nin yapabileceklerini kısıtlayacak politikalar uygulamalıdır.
+  * **Araç (Tool) Enjeksiyonu:** Yukarıda açık kaynak riskleri kısmında değinilen senaryonun bir parçası olarak, MCP sunucularının tanıttığı araçlar suistimal edilebilir. Bu saldırı, bir bakıma *supply chain* sorunuyla birleşir; bir saldırgan, sağladığı aracın masum fonksiyonunu daha sonra güncelleyerek kullanıcıya zarar verecek hale getirebilir. Örneğin, başlangıçta sadece hava durumu bilgisini döndüren bir araç, ileride güncellemeyle kullanıcı verilerini çalan bir kod parçasına dönüştürülebilir. LLM, aracın açıklamasına güvenerek onu kullanacağı için, bu durumda saldırgan arka planda kötü faaliyetine devam ederken, kullanıcı ve istemci tarafı yalnızca aracın normal çıktısını görüp aldatılabilir. Bu nedenle, MCP istemcilerinin kurulu sunucuların kod veya davranış değişikliklerini izleyebilmesi, versiyon kilitleme (*pinning*) yaparak beklenmedik güncellemeleri engellemesi ve kullanıcıyı bilgilendirmesi önemli bir koruma yöntemidir.
+
+Yukarıdaki saldırı türleri MCP protokolünün farklı bileşenlerini hedef almakla birlikte, ortak nokta olarak *MCP kullanımında güvenlik bilincinin önemini* ortaya koymaktadır. Gerek altyapısal (ör. MITM, replay) gerek uygulama seviyesinde (enjeksiyon) olsun, protokolü kullanırken uygun önlemler alınmadığı takdirde istenmeyen sonuçlarla karşılaşmak olasıdır.
+
+### MCP Protokolündeki Mevcut Güvenlik Önlemleri ve Değerlendirmesi
+
+Anthropic (soruda bahsedilen adıyla *Antopic*), MCP protokolünü tasarlarken bazı temel güvenlik önlemlerini dahil etmiştir. Bunların başında, protokolün **kimlik doğrulama ve yetkilendirme mekanizması** gelir. MCP, uzak sunucular için OAuth 2.0 tabanlı erişim token’ları kullanılmasını önererek, her istemci-sunucu bağlantısının bir yetki kontrolüne tabi olmasını sağlamaya çalışır. Bu sayede, her MCP sunucusu eylemini bir kullanıcı veya uygulama adına gerçekleştirecekse, önceden alınmış bir erişim iznine sahip olması beklenir. Ancak burada önemli bir nokta, mevcut spesifikasyondaki OAuth kullanım detaylarının her senaryoya uymayabileceğinin ortaya çıkmış olmasıdır. Topluluktan gelen geri bildirimlere göre MCP’nin ilk yetkilendirme tanımı, kurumsal ortamlardaki bazı modern uygulamalarla çelişmektedir ve bu konuda resmi spesifikasyonun güncellenmesi gündemdedir. Bu durum, protokolün yetkilendirme boyutunda henüz tam olgunlaşmadığını ve geliştirilmeye açık yanlar olduğunu göstermektedir.
+
+Bir diğer yerleşik güvenlik önlemi, **iletişimin şifrelenmesi** ile ilgilidir. Her ne kadar MCP doğrudan “şifreleme zorunluluğu”nu kendi içinde dayatmasa da (zira bu genellikle taşıma katmanının sorumluluğudur), dokümantasyon ve topluluk rehberlerinde uzak bağlantılar için TLS destekli HTTPS kullanılmasının altı çizilir. Özellikle GitHub gibi MCP kullanan platformlar, kendi sunucuları ile istemci arasındaki etkileşimlerde güvenlik için ek mekanizmalar uygulamıştır. Örneğin GitHub’ın MCP sunucusu (Copilot ile entegrasyon amaçlı), paylaşılan depo verilerinde gizli anahtarların açığa çıkmasını önlemek için “push protection” adlı bir güvenlik filtresi kullanır; bu filtre sayesinde MCP üzerinden gerçekleştirilen eylemlerde hassas verilerin sızması engellenir. Bu tür önlemler MCP protokolünün parçası olmasa da, onu kullanan hizmetlerin kendi güvenlik katmanlarını eklediğini göstermektedir.
+
+Anthropic’in MCP için geliştirdiği referans sunucularda da bazı güvenlik düşünceleri mevcuttur. Örneğin, yerel dosya sistemi sunucusu belli bir dizin altında erişime izin vererek bir tür *sandbox* yaratmayı hedefler. Ancak yapılan bağımsız güvenlik analizleri, bu yaklaşımın kusursuz olmadığını ortaya koymuştur. Bazı güvenlik araştırmaları, resmi dosya sistemi MCP sunucusunda dizin atlama veya sembolik bağ (symlink) yoluyla kısıtlamaların atlatılabildiğini ve bunun sunucunun çalıştığı sistemde daha geniş erişimlere yol açabildiğini göstermiştir. Bu bulgular, Anthropic’in koyduğu güvenlik önlemlerinin (dizin kısıtlaması gibi) tek başına yeterli olmadığını göstermiştir. Özellikle LLM tabanlı araçların çoğunlukla geliştirici rahatlığı için yüksek ayrıcalıklarla (örn. kullanıcı oturumunda veya bazen yönetici haklarıyla) çalıştırıldığı düşünülürse, bu tip açıklar kötüye kullanıldığında **sistem bütünlüğünü ciddi şekilde tehlikeye atmaktadır**.
+
+Bununla birlikte, olumlu tarafından bakıldığında Anthropic ve genel olarak MCP topluluğu güvenlik açıklarına oldukça hızlı reaksiyon vermektedir. Örneğin bazı projelerde bildirilmiş uzaktan kod çalıştırma açıkları, proje geliştiricileri tarafından kısa sürede yamanmıştır. Aynı şekilde çeşitli sandbox kaçışı sorunlarına karşı da ilgili yamalar ve kullanıcılara yönelik uyarılar yayınlanmıştır. Bu durum, MCP ekosisteminin güvenlik konusunu ciddiye aldığını ve proaktif iyileştirmelere gittiğini göstermektedir. Yine de, henüz genç sayılabilecek bu protokol için mevcut güvenlik önlemlerinin *“yeterli”* olduğunu söylemek zordur. Ortaya çıkan her yeni kullanım senaryosu veya sunucu uygulaması, kendine özgü güvenlik açıkları barındırabilir. Anthropic’in başlangıçta protokole dahil ettiği temel güvenlik kavramları (OAuth ile yetkilendirme, JSON-RPC ile yapılandırılmış ileti vb.) önemli bir zemin sağlasa da, gerçek dünyadaki saldırı senaryoları bu önlemlerin etrafından dolaşmanın yollarını bulmuştur. Özetle, **MCP’nin güvenliği hala evrim geçirmektedir**; mevcut önlemler bazı tehditleri azaltmakla birlikte, protokolün tam anlamıyla güvenli kabul edilebilmesi için sürekli gözden geçirme, test etme ve güncelleme gerekmektedir.
+
+### Geliştiriciler ve Kurumlar İçin Güvenli MCP Uygulama Önerileri
+
+MCP protokolünü güvenli bir biçimde uygulamak ve kullanmak isteyen geliştiriciler ile kurumlar, aşağıdaki önlemleri göz önünde bulundurmalıdır:
+
+* **Güvenli İletişim ve Sertifika Doğrulaması:** Uzak MCP sunucularıyla haberleşirken daima HTTPS protokolü kullanın ve sunucu sertifikasının doğrulandığından emin olun. Şifrelenmemiş HTTP üzerinden asla hassas veri iletmeyin; aksi halde MITM saldırılarına açık hale gelirsiniz. Gerekirse istemci tarafında, sunucu URL’sinin `https://` ile başlamadığını fark edince bağlantıyı reddeden kontroller ekleyin.
+* **Güçlü Kimlik Doğrulama ve Yetkilendirme:** MCP sunucularına erişim için mümkünse OAuth 2.0 gibi ispatlanmış yöntemlerle alınan erişim token’ları kullanın. Her sunucunun erişim token’ına sadece gerekli asgari yetkileri (scopeları) tanıyın (örneğin bir dosya sistemi sunucusuna salt okunur erişim izni vermek gibi). “En az ayrıcalık” ilkesini gözetin; bir MCP sunucusunun kullanıcı adına yapabileceği işlemleri kısıtlayın. Ayrıca, bir istemci bir sunucuya erişirken tek oturumluk veya kısa ömürlü token’lar kullanmayı, bunları düzenli olarak yenilemeyi ihmal etmeyin.
+* **Güvenilmeyen Sunuculara Karşı Tedbir:** Yalnızca güvendiğiniz kaynaklardan gelen MCP sunucularını yükleyin veya bağlanın. Topluluk tarafından pek incelenmemiş, rastgele depolardan gelen sunucu uygulamalarını kullanmak risklidir. Kurum içinde MCP kullanılacaksa, **onaylı bir sunucu listesi** oluşturarak kullanıcıların sadece bu sunuculara bağlanmasına izin verin. MCP istemci uygulamanız, bağlanılan sunucunun kimliğini (örneğin dijital imza veya hash doğrulaması ile) kontrol edebiliyorsa bu özelliği etkinleştirin.
+* **Kod Bütünlüğü ve Güncellemeler:** MCP sunucu ve istemci yazılımlarınızın bütünlüğünü ve güncelliğini koruyun. Kendi geliştirdiğiniz MCP sunucularını dijital olarak imzalayın ve kullanıcıların indirdiği kodun bu imzayla eşleştiğini doğrulayın. Kullandığınız MCP bileşenlerinde çıkan güvenlik güncellemelerini yakından takip edin ve gecikmeden uygulayın. Standart bir **zafiyet yönetimi** süreci dahilinde, MCP ile ilgili kütüphaneleri ve araçları belirli aralıklarla tarayıp bilinen açıklar için yamaları geçirin.
+* **Güvenli Kod Geliştirme Prensipleri:** Bir MCP sunucusu geliştiriyorsanız, kullanıcılardan veya LLM’den alacağınız her girdiğin potansiyel olarak zararlı olabileceğini varsayın. Özellikle komut satırı çağrıları, dosya erişimleri gibi işlemleri gerçekleştirirken girdi validasyonuna önem verin. Parametreleri sistem komutlarına iletmeden önce boşluk, noktalı virgül, ampersand gibi komut ayrıştırıcı karakterlerden arındırın veya bu karakterlere izin vermeyin. SQL sorguları, kabuk komutları veya işletim sistemi API’leri çağrıları yapıyorsanız **enjeksiyon karşıtı** güvenlik kalıplarını uygulayın (örn. parametreli sorgular, sabit argüman listeleri vb.). Ayrıca, derleme ve CI süreçlerinize statik kod analizi araçları entegre ederek zayıflıkları daha kod yazım aşamasında yakalamaya çalışın.
+* **Sandbox ve Ayırılmış Haklar:** Mümkün olan her durumda, MCP sunucularını izole bir ortama hapsedin. Örneğin bir dosya sistemi MCP sunucusu, sadece belli bir klasör altında okuma/yazma yapabilecek şekilde *chroot/jail* ortamında veya konteyner içinde çalıştırılmalıdır. İşletim sistemi seviyesinde bu sunuculara ayrı kullanıcı hesapları tahsis etmek ve bu hesaplara minimum yetkileri vermek etkili bir yöntemdir. Böylece, olası bir saldırıda sunucunun yapabilecekleri kısıtlanmış olacaktır ve sistem geneline yayılması engellenir.
+* **Kullanıcı Onayı ve Denetim Mekanizmaları:** MCP istemcisi tarafında, LLM’nin tetiklediği yüksek riskli eylemler için mutlaka kullanıcının onayını alacak bir adım ekleyin. Örneğin, dosya silme, yeni kullanıcı oluşturma, para transferi gibi kritik bir işlem bir araç ile yapılacaksa, LLM bunu istese dahi kullanıcıdan “Onaylıyor musunuz?” şeklinde bir geri bildirim almadan yürütmeyin. Bu, olası prompt enjeksiyonu vakalarında istenmeyen sonuçları önlemek için son savunma hattıdır. Benzer şekilde, MCP istemciniz gerçekleştirilen işlemleri kullanıcıya özetleyebiliyorsa (görev tamamlandığında “Sunucu X şu işlemi gerçekleştirdi” gibi), bu şeffaflık kullanıcıyı güvende tutmaya yardımcı olacaktır.
+* **Kayıt ve İzleme:** MCP sunucularının yaptığı işlemleri merkezi bir günlük (log) sistemine kaydetmesi veya en azından yerel olarak log tutması çok önemlidir. Böylece, geriye dönük bir inceleme gerektiğinde hangi komutların çalıştırıldığı, hangi kaynaklara erişildiği tespit edilebilir. Kurumlar, MCP aracılığıyla gerçekleştirilen bütün hareketleri SIEM gibi güvenlik izleme sistemlerine besleyerek anormal bir durum olup olmadığını denetleyebilirler. Örneğin, normalde bir araç günde birkaç kez çalışırken aniden yüzlerce kez çalışmaya başlamışsa, bu bir kompromize işareti olabilir ve loglar sayesinde görülebilir.
+* **Sürüm Kilitleme ve Doğrulama:** Üçüncü parti MCP sunucularını uygulamanıza entegre ediyorsanız, belirli güvenilir bir sürüme kilitleyin ve bu sunucunun kodunda sonradan bir değişiklik olup olmadığını izleyin. Otomatik güncellemeler yerine manuel inceleme sonrası güncelleme yapma yaklaşımını benimseyin. Bu sayede, bir araç güncellendiğinde içine eklenmiş olası zararlı bir kod parçasını fark etme şansınız olur.
+
+Yukarıdaki önlemler, MCP protokolünün getirdiği esneklik ve güç ile beraber gelen riskleri azaltmaya yöneliktir. Gerek bireysel geliştiriciler, gerekse MCP’yi altyapılarında kullanmayı planlayan kurumlar, **“güvenliği en baştan tasarlama”** ilkesini uygulamalıdır. Bu, protokolün kendi sağladığı güvenlik özellikleri kadar, kullanım ortamındaki operasyonel güvenlik tedbirlerini de içerir.
+
+### Sonuç
+
+“Antopic” (Anthropic) tarafından geliştirilen açık kaynak MCP protokolü, yapay zekâ uygulamalarının yeteneklerini artıran yenilikçi bir mimari ve standart getirmiştir. Bu çalışma kapsamında MCP’nin mimari yapısı ve işleyişi detaylı bir şekilde incelenmiş; protokolün LLM’lerle araçlar arasında nasıl bir **bağlamsal köprü** kurduğu ortaya konmuştur. Elde edilen bulgular, MCP’nin sağladığı faydalar kadar, göz ardı edilmemesi gereken güvenlik boyutunu da vurgulamaktadır. Özellikle protokolün açık kaynak doğası sayesinde henüz geliştirme aşamasındayken çeşitli güvenlik açıkları tespit edilmiş ve paylaşılmıştır. Bu sayede geliştiriciler ve kullanıcılar, protokolü üretim ortamlarına taşımadan önce riskleri görme ve önlem alma fırsatı yakalamıştır.
+
+Yapılan değerlendirmeler göstermektedir ki MCP üzerindeki bazı güvenlik açıklarının **önceden belirlenmesi ve giderilmesi**, ileride yaşanabilecek ciddi ihlallerin önüne geçebilecektir. Bu raporda dile getirilen potansiyel saldırı vektörleri ve gerçek dünyada karşılaşılan zafiyetler, protokolün uygulanması esnasında nelere dikkat edilmesi gerektiğine dair somut bir farkındalık yaratır. Gerek Anthropic’in resmi iyileştirmeleri, gerekse bağımsız araştırmacıların bulguları ışığında, MCP’nin güvenlik mimarisi sürekli evrilmektedir. Dolayısıyla bu çalışma, hem MCP geliştiricilerine hem de protokolü kendi sistemlerinde kullanmayı düşünen kurumlara yönelik proaktif bir uyarı niteliğindedir.
+
+Teknik literatüre katkı anlamında, MCP protokolünün mimarisi ve işlevselliğine dair derinlemesine bir bakış sunulmuştur. Bu, henüz yeni sayılabilecek bir standart hakkında derli toplu bir bilgi birikimi sağlaması açısından değerlidir. Ayrıca **açık kaynak protokollerin güvenliği** konusunda genel çıkarımlar yapma imkânı da doğmuştur: Şeffaflık ve kolektif katkı sayesinde güvenlik açıklarını hızla bulup düzeltmek mümkün olsa da, açık ekosistemde güvenin tesis edilmesi ve sürdürülmesi ayrı bir çaba gerektirmektedir. Sonuç olarak, MCP protokolü özelinde elde edilen deneyimler, benzer şekilde geliştirilen diğer açık kaynak projelerde de güvenlik odaklı yaklaşımın önemini pekiştirmektedir.
+
+MCP protokolü doğru uygulandığında yapay zekâ dünyasında verimlilik ve yetenek artışı sağlayan bir araçtır; ancak güvenlik prensipleri ikinci plana atılmadan, “önce güvenlik” yaklaşımıyla ele alınmalıdır. Bu denge sağlandığında, MCP gibi protokoller inovasyon ile emniyeti bir arada götürebilecek, hem geliştiriciler hem de kullanıcılar için büyük kazanımlar sunacaktır.
+
+### Kaynaklar
+
+* Anthropic — Model Context Protocol (MCP) GitHub projesi ve resmi belgeler
+* GitHub Docs — Model Context Protocol (MCP) hakkında dokümantasyon
+* Bağımsız güvenlik raporları ve analizler (örnek güvenlik araştırma raporları, CVE bildirileri, proje yamaları)
 
 ---
 
 ## Ek B: Google Scholar ve Sentez
 
-> Not: Bu bÃ¶lÃ¼mdeki giriÅŸ ve mimari Ã¶zetler Rapor bÃ¶lÃ¼mÃ¼yle Ã¶rtÃ¼ÅŸÃ¼r. TekrarÄ± azaltmak iÃ§in odak; makale Ã¶zetleri, tematik sentez ve ek kaynaklardÄ±r.
+> Not: Bu bölümdeki giriş ve mimari özetler Rapor bölümüyle örtüşür. Tekrarı azaltmak için odak; makale özetleri, tematik sentez ve ek kaynaklardır.
 
-### Ã–nemli Akademik Makaleler
+### MCP'ye Giriş
 
-AÅŸaÄŸÄ±daki Ã¶zetler, MCPâ€™nin geliÅŸtirilmesi, uygulanmasÄ± ve **ampirik deÄŸerlendirmesine** odaklanarak, protokolÃ¼n anlaÅŸÄ±lmasÄ±nÄ± yÃ¶nlendiren Ã§ekirdek literatÃ¼rÃ¼ temsil eder.
+### Ajans Paradigması Değişimi ve Entegrasyon Zorluğu
 
-- **Ã–zet 1:** BÃ¼yÃ¼k Dil Modelleri (LLMâ€™ler) pasif metin Ã¼reticilerinden **aktif ajanlara** evrilmektedirâ€¦ **[Kaynak: 2]**
-- **Ã–zet 5:** **AraÃ§ Ã§aÄŸÄ±rma**, AI ajanlarÄ±nÄ±n gerÃ§ek dÃ¼nyayla etkileÅŸimi ve karmaÅŸÄ±k sorunlarÄ± Ã§Ã¶zmesi iÃ§in kritik bir yetenektirâ€¦ **[Kaynak: 6]**
-- **Ã–zet (BulgularÄ±n Ã–zeti) 2:** MCP iÃ§in gelecekteki araÅŸtÄ±rma yÃ¶nleri; **standardizasyon**, **gÃ¼ven sÄ±nÄ±rlarÄ±** ve **sÃ¼rdÃ¼rÃ¼lebilir bÃ¼yÃ¼me**yi gÃ¼Ã§lendirmeye odaklanÄ±r. GÃ¼venlik, Ã¶lÃ§eklenebilirlik ve yÃ¶netiÅŸim sorunlarÄ± Ã¶ne Ã§Ä±kar. DaÄŸÄ±tÄ±k **sunucu yÃ¶netimi**, merkezi bir uyumluluk otoritesinin yokluÄŸunda **yama tutarsÄ±zlÄ±klarÄ±** ve **yapÄ±landÄ±rma sapmalarÄ±**na yol aÃ§abilirâ€¦ **[Kaynak: 2]**
-- **Ã–zet 6:** LLMâ€™lerin yetenekleri, Ã§eÅŸitli veri kaynaklarÄ± veya API sonuÃ§larÄ±nÄ± entegre etmek iÃ§in **iÅŸlev Ã§aÄŸrÄ±larÄ±** ile geniÅŸletilirâ€¦ **[Kaynak: 6]**
-- **Ã–zet (Ekonomik AraÅŸtÄ±rma UygulamasÄ±) 4:** Bu makale; planlama, araÃ§ kullanÄ±mÄ± vb. iÅŸlevleri yerine getiren otonom **LLM tabanlÄ± sistemleri (AI ajanlarÄ±nÄ±)** anlaÅŸÄ±lÄ±r kÄ±larâ€¦ **[Kaynak: 4]**
+Büyük Dil Modellerinin (LLM) evrimi, yapay zekâ alanında temel bir paradigma değişimini temsil eder ve modelleri pasif metin üretiminin ötesine, gerçek dünyadaki görevleri yerine getirebilen aktif, otonom bir **ajansa** doğru taşır. Bu ajans dönüşümü, **harici araçların çağrılması** için sağlam ve ölçeklenebilir mekanizmalar gerektirir. [1]
+Tarihsel olarak, LLM'lerin harici yeteneklerle entegrasyonu, **entegrasyon zorluğu** nedeniyle engellenmiştir. Bu senaryoda LLM platformları, mevcut harici araçların veya API'lerin her biri için **özel, sabit kodlu bağlamalar** gerektiriyordu. Bu da farklı entegrasyon yollarına yol açarak **yüksek bakım maliyetleri**, yinelemeler ve ekosistem ölçeklendirilmesinde engellere neden oluyordu. [2]
+
+**Model Bağlam Protokolü (MCP)**, bu entegrasyon darboğazını çözmek için geliştirilmiştir. Protokol, çerçeveye özgü, uygulama merkezli araç bağlamalarından; **birleştirilebilir ve dinamik olarak keşfedilebilir ağ hizmetleri**nden oluşan, birlikte çalışabilir bir ekosisteme geçişi öngörür. [2] LLM ile dış dünya arasındaki arayüzü **standartlaştırarak**, MCP yinelenen bakım çabalarını azaltır ve **araç destekli yapay zekâ** için paylaşımlı, ölçeklenebilir bir ekosistem oluşturur. [2]
+
+### MCP'yi Tanımlama: Evrensel Bağlayıcı
+
+Anthropic tarafından 2024 yılının sonlarında tanıtılan **Model Context Protocol (MCP)**, AI sistemlerinin temel model sınırlarının dışındaki harici verilere, API’lere ve araçlara erişmesi için **tutarlı bir mekanizma** sağlayan, **açık kaynaklı**, **şema odaklı** bir standarttır. [1]
+Genellikle AI için **“evrensel konektör”** olarak nitelendirilen MCP, **gerçek zamanlı karar verme** için tasarlanmıştır ve **ölçeklenebilir, akıllı ajan iş akışları** oluşturmanın temelini oluşturur. [3]
+
+MCP’nin mimarisi, çekirdek LLM akıl yürütme alanı (**istemci**) ile aracın yürütme ortamı (**sunucu**) arasında **katı bir ayrım** uygular. [4] Bu ayrıştırma, mimari esneklik ve modülerlik sağlar: **müşteri/ajan kodunu değiştirmeden** yeni araçlar eklenebilir veya güncellenebilir; LLM’ler talep üzerine yeni sunuculara bağlanarak işlevselliklerini esnek biçimde genişletebilir. [2]
+
+### İncelemenin Yapısı ve Kapsamı
+
+Bu inceleme, **2024 sonrası** yayınlanan akademik çalışmalardan elde edilen bulguları sentezlemekte ve **yalnızca MCP’nin mimarisi, benimsenme dinamikleri, ampirik performansı** ve **güvenlik/yönetişim** zorluklarını ele alan kaynaklara odaklanmaktadır. Sonraki bölümlerde, mimari bileşenler ayrıntılandırılacak; uygulama otomasyonundaki atılımlar, uygulama alanları, performans bulguları ve **açık araştırma boşlukları** tartışılacaktır.
 
 ---
 
-### AraÅŸtÄ±rmanÄ±n Tematik Ã–zeti
+### Önemli Akademik Makaleler
 
-### Temel TanÄ±m ve Mimari
+Aşağıdaki özetler, MCP’nin geliştirilmesi, uygulanması ve **ampirik değerlendirmesine** odaklanarak, protokolün anlaşılmasını yönlendiren çekirdek literatürü temsil eder.
 
-#### Mimari Temeller: Ä°stemci-Sunucu Modeli ve Protokol TasarÄ±mÄ±
-MCP, temel bir **istemciâ€“sunucu** mimarisi kurar:
-- **MCP Ä°stemcileri (ajan/uygulama):** Sunuculara baÄŸlanÄ±r, **yetkinlikleri keÅŸfeder**, Ã§aÄŸÄ±rÄ±r ve sonuÃ§larÄ± LLM baÄŸlamÄ±na entegre eder. [4]
-- **MCP SunucularÄ±:** Harici veri kaynaklarÄ±yla **gerÃ§ek API etkileÅŸimlerini yÃ¼rÃ¼tÃ¼r**, kimlik doÄŸrulama ve yÃ¼rÃ¼tmeyi yÃ¶netir. [4]
+- **Özet 1:** Büyük Dil Modelleri (LLM’ler) pasif metin üreticilerinden **aktif ajanlara** evrilmektedir… **[Kaynak: 2]**
+- **Özet 5:** **Araç çağırma**, AI ajanlarının gerçek dünyayla etkileşimi ve karmaşık sorunları çözmesi için kritik bir yetenektir… **[Kaynak: 6]**
+- **Özet (Bulguların Özeti) 2:** MCP için gelecekteki araştırma yönleri; **standardizasyon**, **güven sınırları** ve **sürdürülebilir büyüme**yi güçlendirmeye odaklanır. Güvenlik, ölçeklenebilirlik ve yönetişim sorunları öne çıkar. Dağıtık **sunucu yönetimi**, merkezi bir uyumluluk otoritesinin yokluğunda **yama tutarsızlıkları** ve **yapılandırma sapmaları**na yol açabilir… **[Kaynak: 2]**
+- **Özet 6:** LLM’lerin yetenekleri, çeşitli veri kaynakları veya API sonuçlarını entegre etmek için **işlev çağrıları** ile genişletilir… **[Kaynak: 6]**
+- **Özet (Ekonomik Araştırma Uygulaması) 4:** Bu makale; planlama, araç kullanımı vb. işlevleri yerine getiren otonom **LLM tabanlı sistemleri (AI ajanlarını)** anlaşılır kılar… **[Kaynak: 4]**
 
-Protokol, **JSON-RPC 2.0** standardÄ±na dayanÄ±r; bu seÃ§im **gÃ¼Ã§lÃ¼ tipleme**, aÃ§Ä±k istek/yanÄ±t yaÅŸam dÃ¶ngÃ¼sÃ¼, **izin katmanlarÄ±** ve istemci-sunucu **akÄ±ÅŸ mekanizmalarÄ±** gibi gÃ¼venlik-Ã¶ncelikli Ã¶zellikleri kolaylaÅŸtÄ±rÄ±r. [3]
+---
 
-#### Temel BileÅŸenler ve Åema BaÄŸÄ±mlÄ±lÄ±ÄŸÄ±
-MCP, LLM tarafÄ±ndan dinamik keÅŸif ve Ã§aÄŸÄ±rma iÃ§in **harici araÃ§larÄ±n ÅŸema ile tanÄ±mlanmasÄ±na** dayanÄ±r. [1] Akademik literatÃ¼r, bu ÅŸemalar iÃ§in **OpenAPI 2.0/3.0** kullanÄ±lmasÄ±nÄ±n etkili olduÄŸunu doÄŸrular. [1]
+### Araştırmanın Tematik Özeti
 
-**LLM**, aracÄ± doÄŸru entegre etmek iÃ§in **parametreler/girdiler/Ã§Ä±ktÄ±lar**Ä±n ayrÄ±ntÄ±lÄ± tanÄ±mÄ±na ihtiyaÃ§ duyar; **MCP sunucusu** bu tanÄ±mlarÄ± kaydeder ve LLMâ€™nin **dosya sistemleri, web tarayÄ±cÄ±larÄ±, finansal veriler** gibi Ã¶zelliklere eriÅŸmesini saÄŸlar. [6]
+### Temel Tanım ve Mimari
 
-**Tablo 3.1 â€“ MCP Mimari BileÅŸenleri ve Ä°ÅŸlevleri**
+#### Mimari Temeller: İstemci-Sunucu Modeli ve Protokol Tasarımı
+MCP, temel bir **istemci–sunucu** mimarisi kurar:
+- **MCP İstemcileri (ajan/uygulama):** Sunuculara bağlanır, **yetkinlikleri keşfeder**, çağırır ve sonuçları LLM bağlamına entegre eder. [4]
+- **MCP Sunucuları:** Harici veri kaynaklarıyla **gerçek API etkileşimlerini yürütür**, kimlik doğrulama ve yürütmeyi yönetir. [4]
 
-| BileÅŸen                     | RolÃ¼                                                                 | Temel Ä°ÅŸlev                                  | Standart/Protokol  | Anahtar Ã–zellik/KÄ±sÄ±tlama                                                                 |
+Protokol, **JSON-RPC 2.0** standardına dayanır; bu seçim **güçlü tipleme**, açık istek/yanıt yaşam döngüsü, **izin katmanları** ve istemci-sunucu **akış mekanizmaları** gibi güvenlik-öncelikli özellikleri kolaylaştırır. [3]
+
+#### Temel Bileşenler ve Şema Bağımlılığı
+MCP, LLM tarafından dinamik keşif ve çağırma için **harici araçların şema ile tanımlanmasına** dayanır. [1] Akademik literatür, bu şemalar için **OpenAPI 2.0/3.0** kullanılmasının etkili olduğunu doğrular. [1]
+
+**LLM**, aracı doğru entegre etmek için **parametreler/girdiler/çıktılar**ın ayrıntılı tanımına ihtiyaç duyar; **MCP sunucusu** bu tanımları kaydeder ve LLM’nin **dosya sistemleri, web tarayıcıları, finansal veriler** gibi özelliklere erişmesini sağlar. [6]
+
+**Tablo 3.1 – MCP Mimari Bileşenleri ve İşlevleri**
+
+| Bileşen                     | Rolü                                                                 | Temel İşlev                                  | Standart/Protokol  | Anahtar Özellik/Kısıtlama                                                                 |
 |----------------------------|----------------------------------------------------------------------|----------------------------------------------|--------------------|-------------------------------------------------------------------------------------------|
-| **MCP Ä°stemcisi (Ajan)**   | AraÃ§larÄ± keÅŸfeder/Ã§aÄŸÄ±rÄ±r; Ã§Ä±ktÄ±larÄ±nÄ± LLM baÄŸlamÄ±na entegre eder    | Planlama ve baÄŸlam yÃ¶netimi                  | JSON-RPC 2.0       | BaÄŸlam penceresi sÄ±nÄ±rlÄ±dÄ±r; **araÃ§ numaralandÄ±rma** belirteÃ§ uzunluÄŸunu yÃ¶netmelidir. [6] |
-| **MCP Sunucusu**           | DÄ±ÅŸ yetenekleri ortaya Ã§Ä±karÄ±r; yÃ¼rÃ¼tme ve kimlik doÄŸrulamayÄ± yÃ¶netir | Kaynak/araÃ§ barÄ±ndÄ±rma                       | OpenAPI-tÃ¼revi     | YÃ¼ksek kaliteli ÅŸema gerekir; baÅŸlangÄ±Ã§ta **manuel iskele** darboÄŸazlarÄ± gÃ¶rÃ¼lebilir. [1] |
-| **Protokol TasarÄ±mÄ±**      | StandartlaÅŸtÄ±rÄ±lmÄ±ÅŸ araÃ§ tanÄ±mÄ± ve etkileÅŸimi                         | Birlikte Ã§alÄ±ÅŸabilir arayÃ¼z                   | JSON-RPC 2.0       | ModÃ¼lerlik, izinler ve **Ã¶lÃ§eklenebilir optimizasyon** (Ã¶nbellek, toplu iÅŸleme). [3]      |
+| **MCP İstemcisi (Ajan)**   | Araçları keşfeder/çağırır; çıktılarını LLM bağlamına entegre eder    | Planlama ve bağlam yönetimi                  | JSON-RPC 2.0       | Bağlam penceresi sınırlıdır; **araç numaralandırma** belirteç uzunluğunu yönetmelidir. [6] |
+| **MCP Sunucusu**           | Dış yetenekleri ortaya çıkarır; yürütme ve kimlik doğrulamayı yönetir | Kaynak/araç barındırma                       | OpenAPI-türevi     | Yüksek kaliteli şema gerekir; başlangıçta **manuel iskele** darboğazları görülebilir. [1] |
+| **Protokol Tasarımı**      | Standartlaştırılmış araç tanımı ve etkileşimi                         | Birlikte çalışabilir arayüz                   | JSON-RPC 2.0       | Modülerlik, izinler ve **ölçeklenebilir optimizasyon** (önbellek, toplu işleme). [3]      |
 
-### Uygulama, Ã–lÃ§eklenebilirlik ve Benimseme Dinamikleri
+### Uygulama, Ölçeklenebilirlik ve Benimseme Dinamikleri
 
-#### Manuel Sunucu GeliÅŸtirme DarboÄŸazÄ±nÄ±n Nicelendirilmesi
-MCPâ€™nin yayÄ±nÄ±ndan sonraki 6 ayda oluÅŸturulan **22.000+ MCP etiketli repo**nun analizinde, **%5â€™ten azÄ±nÄ±n** iÅŸlevsel sunucu uygulamalarÄ± iÃ§erdiÄŸi raporlanmÄ±ÅŸtÄ±r. [1] BirÃ§ok proje **tek bakÄ±mcÄ±**, **elle ÅŸema/kimlik doÄŸrulama** gibi tekrar eden Ã§abalar iÃ§erir. [1]
+#### Manuel Sunucu Geliştirme Darboğazının Nicelendirilmesi
+MCP’nin yayınından sonraki 6 ayda oluşturulan **22.000+ MCP etiketli repo**nun analizinde, **%5’ten azının** işlevsel sunucu uygulamaları içerdiği raporlanmıştır. [1] Birçok proje **tek bakımcı**, **elle şema/kimlik doğrulama** gibi tekrar eden çabalar içerir. [1]
 
-#### Otomasyon: AutoMCP ve OpenAPI'nin RolÃ¼
-**AutoMCP derleyici**, OpenAPI sÃ¶zleÅŸmelerinden **tam MCP sunucularÄ±** Ã¼retebilmektedir. 50 gerÃ§ek dÃ¼nya APIâ€™sinde (10+ alan, 5.066 uÃ§ nokta) yapÄ±lan deÄŸerlendirmede:
-- 1.023 araÃ§ Ã§aÄŸrÄ±sÄ±ndan **%76,5**â€™i ilk denemede baÅŸarÄ±lÄ±,
-- KÃ¼Ã§Ã¼k dÃ¼zeltmeler (API baÅŸÄ±na ~**19 satÄ±r** deÄŸiÅŸiklik) sonrasÄ± baÅŸarÄ± **%99,9**â€™a yÃ¼kselmiÅŸtir. [1]
+#### Otomasyon: AutoMCP ve OpenAPI'nin Rolü
+**AutoMCP derleyici**, OpenAPI sözleşmelerinden **tam MCP sunucuları** üretebilmektedir. 50 gerçek dünya API’sinde (10+ alan, 5.066 uç nokta) yapılan değerlendirmede:
+- 1.023 araç çağrısından **%76,5**’i ilk denemede başarılı,
+- Küçük düzeltmeler (API başına ~**19 satır** değişiklik) sonrası başarı **%99,9**’a yükselmiştir. [1]
 
 #### Yeni Benimseme Engeli: Spesifikasyon Kalitesi
-Otomasyonun baÅŸarÄ±sÄ±, zorluÄŸun artÄ±k **kod Ã¼retimi** deÄŸil, **OpenAPI sÃ¶zleÅŸme kalitesi** olduÄŸunu gÃ¶sterir. KuruluÅŸlar **API yÃ¶netiÅŸimine** ve **dokÃ¼mantasyon doÄŸruluÄŸuna** Ã¶ncelik vermelidir. [1]
+Otomasyonun başarısı, zorluğun artık **kod üretimi** değil, **OpenAPI sözleşme kalitesi** olduğunu gösterir. Kuruluşlar **API yönetişimine** ve **dokümantasyon doğruluğuna** öncelik vermelidir. [1]
 
-### Uygulama AlanlarÄ± ve Ã–rnekler
+### Uygulama Alanları ve Örnekler
 
-#### Genel Ajan Ä°ÅŸ AkÄ±ÅŸlarÄ± ve Ekosistem BÃ¼yÃ¼mesi
-Binlerce baÄŸÄ±msÄ±z MCP sunucusu; **GitHub, Slack** gibi hizmetlere eriÅŸim saÄŸlar. **MCPToolBench++**, 4.000+ MCP sunucusundan oluÅŸan pazarda veri analizi, dosya iÅŸlemleri, finansal hesaplama vb. geniÅŸ uygulama alanÄ±nÄ± doÄŸrular. [6]
+#### Genel Ajan İş Akışları ve Ekosistem Büyümesi
+Binlerce bağımsız MCP sunucusu; **GitHub, Slack** gibi hizmetlere erişim sağlar. **MCPToolBench++**, 4.000+ MCP sunucusundan oluşan pazarda veri analizi, dosya işlemleri, finansal hesaplama vb. geniş uygulama alanını doğrular. [6]
 
-#### Ã–zel Alan: Ekonomik ve Kurumsal AraÅŸtÄ±rma
-MCP, ajanlarÄ±n **kurumsal veritabanlarÄ±na** (Ã¶r. merkez bankasÄ±/Ã¶zel veri) baÄŸlanÄ±p **sÃ¼rdÃ¼rÃ¼lebilir baÄŸlantÄ±lar** kurmasÄ±nÄ± saÄŸlar; literatÃ¼r incelemeleri, ekonometrik kodlama ve **Ã¶zel veri analizi** gibi **Ã¶zerk araÅŸtÄ±rma iÅŸ akÄ±ÅŸlarÄ±** mÃ¼mkÃ¼n olur. [4]
+#### Özel Alan: Ekonomik ve Kurumsal Araştırma
+MCP, ajanların **kurumsal veritabanlarına** (ör. merkez bankası/özel veri) bağlanıp **sürdürülebilir bağlantılar** kurmasını sağlar; literatür incelemeleri, ekonometrik kodlama ve **özel veri analizi** gibi **özerk araştırma iş akışları** mümkün olur. [4]
 
-### Performans: KarÅŸÄ±laÅŸtÄ±rma ve Analiz
+### Performans: Karşılaştırma ve Analiz
 
 #### Son Teknoloji Benchmark'lar
-- **LiveMCP-101:** 101 gerÃ§ek dÃ¼nya sorgusu, Ã§ok-adÄ±mlÄ± planlar ve koordinasyon gerektirir. [5]
-- **MCPToolBench++:** FarklÄ± yanÄ±t biÃ§imleri ve araÃ§ baÅŸarÄ± oranÄ± deÄŸiÅŸkenliÄŸini adresler; Ã§ok alanlÄ± Ã§erÃ§eve sunar. [6]
+- **LiveMCP-101:** 101 gerçek dünya sorgusu, çok-adımlı planlar ve koordinasyon gerektirir. [5]
+- **MCPToolBench++:** Farklı yanıt biçimleri ve araç başarı oranı değişkenliğini adresler; çok alanlı çerçeve sunar. [6]
 
-#### Bulgular: AraÃ§ Koordinasyon EksikliÄŸi
-En geliÅŸmiÅŸ LLMâ€™ler bile **karmaÅŸÄ±k Ã§ok-adÄ±mlÄ±** gÃ¶revlerde **%60â€™Ä±n altÄ±nda** baÅŸarÄ± gÃ¶stermiÅŸtir. [5] MCP, eriÅŸimi standartlaÅŸtÄ±rsa da **gÃ¼venilir yÃ¼rÃ¼tme** iÃ§in yeterli deÄŸildir; sÄ±nÄ±rlama **planlama/koordinasyon** yeteneklerindedir.
+#### Bulgular: Araç Koordinasyon Eksikliği
+En gelişmiş LLM’ler bile **karmaşık çok-adımlı** görevlerde **%60’ın altında** başarı göstermiştir. [5] MCP, erişimi standartlaştırsa da **güvenilir yürütme** için yeterli değildir; sınırlama **planlama/koordinasyon** yeteneklerindedir.
 
-#### ArÄ±za ModlarÄ± ve Kaynak KÄ±sÄ±tlarÄ±
+#### Arıza Modları ve Kaynak Kısıtları
 
-**Tablo 3.2 â€“ MCP Etkin Ajan YÃ¼rÃ¼tmede GÃ¶zlemlenen ArÄ±za ModlarÄ± (LiveMCP-101)**
+**Tablo 3.2 – MCP Etkin Ajan Yürütmede Gözlemlenen Arıza Modları (LiveMCP-101)**
 
-| Hata Kategorisi        | Ã–rnek ArÄ±za Modu                          | AÃ§Ä±klama                                                                                 | Kaynak |
+| Hata Kategorisi        | Örnek Arıza Modu                          | Açıklama                                                                                 | Kaynak |
 |------------------------|--------------------------------------------|------------------------------------------------------------------------------------------|--------|
-| AraÃ§ Koordinasyonu     | **DÃ¼ÅŸÃ¼k BaÅŸarÄ±**                           | Ã‡ok-adÄ±mlÄ± eylemlerde baÅŸarÄ±sÄ±zlÄ±k; karmaÅŸÄ±k koordinasyon gereksinimleri                | [5]    |
-| AraÃ§ Koordinasyonu     | **AÅŸÄ±rÄ± Ã¶zgÃ¼venli iÃ§ Ã§Ã¶zÃ¼m**               | Ajan, temelli MCP aracÄ±nÄ± atlayÄ±p iÃ§ muhakemeye gÃ¼venir; halÃ¼sinasyon/erken bitiÅŸ       | [5]    |
-| AraÃ§ Koordinasyonu     | **Gereksinimi gÃ¶z ardÄ±**                   | AÃ§Ä±k gereksinim atlanÄ±r; ilgili araÃ§ seÃ§ilmez                                            | [5]    |
-| Uygulama               | **Parametre hatalarÄ±**                     | Girdi parametreleri yanlÄ±ÅŸ biÃ§imlenir/atlanÄ±r                                            | [5]    |
-| Ã–lÃ§eklenebilirlik/BaÄŸlam| **Token verimsizlikleri/sÄ±nÄ±rlarÄ±**        | Åema envanteri baÄŸlam penceresini tÃ¼ketir; planlama/akÄ±l yÃ¼rÃ¼tme iÃ§in alan daralÄ±r      | [5,6]  |
+| Araç Koordinasyonu     | **Düşük Başarı**                           | Çok-adımlı eylemlerde başarısızlık; karmaşık koordinasyon gereksinimleri                | [5]    |
+| Araç Koordinasyonu     | **Aşırı özgüvenli iç çözüm**               | Ajan, temelli MCP aracını atlayıp iç muhakemeye güvenir; halüsinasyon/erken bitiş       | [5]    |
+| Araç Koordinasyonu     | **Gereksinimi göz ardı**                   | Açık gereksinim atlanır; ilgili araç seçilmez                                            | [5]    |
+| Uygulama               | **Parametre hataları**                     | Girdi parametreleri yanlış biçimlenir/atlanır                                            | [5]    |
+| Ölçeklenebilirlik/Bağlam| **Token verimsizlikleri/sınırları**        | Şema envanteri bağlam penceresini tüketir; planlama/akıl yürütme için alan daralır      | [5,6]  |
 
 ---
 
-### SonuÃ§ ve AraÅŸtÄ±rma BoÅŸluklarÄ±
+### Sonuç ve Araştırma Boşlukları
 
-### Mevcut Durumun Ã–zeti
-MCP, **araÃ§ etkileÅŸimini standartlaÅŸtÄ±rma** hedefini bÃ¼yÃ¼k Ã¶lÃ§Ã¼de baÅŸarmÄ±ÅŸ; **OpenAPI tabanlÄ±** otomatik sunucu oluÅŸturma ile geliÅŸtirici engellerini azaltmÄ±ÅŸtÄ±r. [1] Ekosistem bÃ¼yÃ¼mÃ¼ÅŸ; ancak iki kritik alan aÃ§Ä±k kalmÄ±ÅŸtÄ±r:
-1) **Ajans gÃ¼venilirliÄŸi** (Ã§ok-adÄ±mlÄ± gÃ¶revlerde dÃ¼ÅŸÃ¼k baÅŸarÄ±),
-2) **Ekosistem yÃ¶netiÅŸimi** (gÃ¼venlik/uyumluluk). [2]
+### Mevcut Durumun Özeti
+MCP, **araç etkileşimini standartlaştırma** hedefini büyük ölçüde başarmış; **OpenAPI tabanlı** otomatik sunucu oluşturma ile geliştirici engellerini azaltmıştır. [1] Ekosistem büyümüş; ancak iki kritik alan açık kalmıştır:
+1) **Ajans güvenilirliği** (çok-adımlı görevlerde düşük başarı),
+2) **Ekosistem yönetişimi** (güvenlik/uyumluluk). [2]
 
-### Ã‡Ã¶zÃ¼lmemiÅŸ Zorluklar ve Gelecek YÃ¶nelimler
+### Çözülmemiş Zorluklar ve Gelecek Yönelimler
 
-#### GÃ¼venlik AÃ§Ä±klarÄ± ve GÃ¼ven SÄ±nÄ±rlarÄ±
-DaÄŸÄ±tÄ±k sunucu yÃ¶netimi, merkezi uyumluluk yokluÄŸunda **heterojen uygulamalar** ve **yama tutarsÄ±zlÄ±klarÄ±**na yol aÃ§ar. **Zorunlu konfigÃ¼rasyon doÄŸrulamasÄ±**, **otomatik sÃ¼rÃ¼m kontrolÃ¼** ve **bÃ¼tÃ¼nlÃ¼k denetimi** gibi teknik yÃ¶netiÅŸim Ã§Ã¶zÃ¼mleri Ã¶ncelik olmalÄ±dÄ±r. [2]
+#### Güvenlik Açıkları ve Güven Sınırları
+Dağıtık sunucu yönetimi, merkezi uyumluluk yokluğunda **heterojen uygulamalar** ve **yama tutarsızlıkları**na yol açar. **Zorunlu konfigürasyon doğrulaması**, **otomatik sürüm kontrolü** ve **bütünlük denetimi** gibi teknik yönetişim çözümleri öncelik olmalıdır. [2]
 
-#### Ã–lÃ§eklenebilirlik, ParÃ§alanma ve YÃ¶netiÅŸim
-BaÄŸlam penceresi kÄ±sÄ±tÄ±, **araÃ§ envanteri** â†” **akÄ±l yÃ¼rÃ¼tme derinliÄŸi** arasÄ±nda Ã¶dÃ¼nleÅŸim yaratÄ±r. **Dinamik, baÄŸlamsal araÃ§ keÅŸfi** ve **ÅŸema sÄ±kÄ±ÅŸtÄ±rma** araÅŸtÄ±rmalarÄ± Ã¶nceliklidir. [6] DÃ¼ÅŸÃ¼k gÃ¼venilirlik, yÃ¼ksek riskli kurumsal alanlarda etik, gÃ¼venlik ve yasal sonuÃ§larÄ± bÃ¼yÃ¼tÃ¼r; **adalet**, **veri sÄ±zÄ±ntÄ±sÄ± savunmasÄ±** ve **hesap verebilirlik** odaklÄ± yÃ¶netiÅŸim ÅŸarttÄ±r. [2,4]
+#### Ölçeklenebilirlik, Parçalanma ve Yönetişim
+Bağlam penceresi kısıtı, **araç envanteri** ↔ **akıl yürütme derinliği** arasında ödünleşim yaratır. **Dinamik, bağlamsal araç keşfi** ve **şema sıkıştırma** araştırmaları önceliklidir. [6] Düşük güvenilirlik, yüksek riskli kurumsal alanlarda etik, güvenlik ve yasal sonuçları büyütür; **adalet**, **veri sızıntısı savunması** ve **hesap verebilirlik** odaklı yönetişim şarttır. [2,4]
 
 ### Kaynaklar
-1. **Making REST APIs Agent-Ready: From OpenAPI to MCP** â€“ arXiv (13 Eki 2025) â†’ https://arxiv.org/abs/2507.16044
-2. **Model BaÄŸlam ProtokolÃ¼ (MCP): Manzara, GÃ¼venlik Tehditleriâ€¦** â€“ arXiv (13 Eki 2025) â†’ https://arxiv.org/pdf/2503.23278
-3. **Model BaÄŸlam ProtokolÃ¼ (MCP) Nedir | NasÄ±l Ã‡alÄ±ÅŸÄ±r** â€“ Kodexo Labs (13 Eki 2025) â†’ https://kodexolabs.com/what-is-model-context-protocol-mcp/
-4. **AI Agents for Economic Research** â€“ NBER Working Paper (13 Eki 2025) â†’ https://www.nber.org/system/files/working_papers/w34202/w34202.pdf
-5. **LiveMCP-101: Stress-Testing MCP-Enabled Systems** â€“ arXiv (13 Eki 2025) â†’ https://arxiv.org/abs/2508.15760
-6. **MCPToolBench++: A Large-Scale AI Agent MCP Benchmark** â€“ arXiv (13 Eki 2025) â†’ https://arxiv.org/abs/2508.07575
+1. **Making REST APIs Agent-Ready: From OpenAPI to MCP** – arXiv (13 Eki 2025) → https://arxiv.org/abs/2507.16044
+2. **Model Bağlam Protokolü (MCP): Manzara, Güvenlik Tehditleri…** – arXiv (13 Eki 2025) → https://arxiv.org/pdf/2503.23278
+3. **Model Bağlam Protokolü (MCP) Nedir | Nasıl Çalışır** – Kodexo Labs (13 Eki 2025) → https://kodexolabs.com/what-is-model-context-protocol-mcp/
+4. **AI Agents for Economic Research** – NBER Working Paper (13 Eki 2025) → https://www.nber.org/system/files/working_papers/w34202/w34202.pdf
+5. **LiveMCP-101: Stress-Testing MCP-Enabled Systems** – arXiv (13 Eki 2025) → https://arxiv.org/abs/2508.15760
+6. **MCPToolBench++: A Large-Scale AI Agent MCP Benchmark** – arXiv (13 Eki 2025) → https://arxiv.org/abs/2508.07575
 
----
+# Model Bağlam Protokolü (MCP): LLM Entegrasyonu, Ajans Sistemleri ve Araç Kullanımı Standardizasyonunda Rolünün Uzman Analizi
 
-# Model BaÄŸlam ProtokolÃ¼ (MCP): LLM Entegrasyonu, Ajans Sistemleri ve AraÃ§ KullanÄ±mÄ± Standardizasyonunda RolÃ¼nÃ¼n Uzman Analizi
+### Otonom Yapay Zekâ için Temel Katman Olarak MCP
+LLM’lerin harici kaynaklar ve araçlarla **dinamik arayüz** oluşturması için standart, güvenilir bir yöntem eksikti. **MCP**, AI modelleri ile harici kaynak/araçlar arasında **birleşik, çift yönlü iletişim katmanı** tanımlayarak bu boşluğu doldurur. MCP, **parçalanmayı** azaltır ve **pasif işlev açıklamalarını** **aktif bağlam kaynaklarına** dönüştürür. 2025’teki yayın kümeleri, MCP’nin **acil bir endüstri tepkisi** olarak olgunlaştığını gösterir. [2]
 
-### Otonom Yapay ZekÃ¢ iÃ§in Temel Katman Olarak MCP
-LLMâ€™lerin harici kaynaklar ve araÃ§larla **dinamik arayÃ¼z** oluÅŸturmasÄ± iÃ§in standart, gÃ¼venilir bir yÃ¶ntem eksikti. **MCP**, AI modelleri ile harici kaynak/araÃ§lar arasÄ±nda **birleÅŸik, Ã§ift yÃ¶nlÃ¼ iletiÅŸim katmanÄ±** tanÄ±mlayarak bu boÅŸluÄŸu doldurur. MCP, **parÃ§alanmayÄ±** azaltÄ±r ve **pasif iÅŸlev aÃ§Ä±klamalarÄ±nÄ±** **aktif baÄŸlam kaynaklarÄ±na** dÃ¶nÃ¼ÅŸtÃ¼rÃ¼r. 2025â€™teki yayÄ±n kÃ¼meleri, MCPâ€™nin **acil bir endÃ¼stri tepkisi** olarak olgunlaÅŸtÄ±ÄŸÄ±nÄ± gÃ¶sterir. [2]
+### Mimari Gereklilik: Dağıtım Modelleri ve Gelişmiş Sistem Entegrasyonu
 
-### Mimari Gereklilik: DaÄŸÄ±tÄ±m Modelleri ve GeliÅŸmiÅŸ Sistem Entegrasyonu
-
-#### FaaS ile BarÄ±ndÄ±rÄ±lan MCP Hizmetleri
-**AgentX** Ã§alÄ±ÅŸmasÄ±, MCP sunucularÄ±nÄ±n **FaaS** Ã¼zerinde barÄ±ndÄ±rÄ±lmasÄ±nÄ±n baÅŸarÄ±, gecikme ve maliyet aÃ§Ä±sÄ±ndan avantajlarÄ±nÄ± gÃ¶sterir; **patlama** tarzÄ± kullanÄ±m profilleriyle doÄŸal uyum saÄŸlar. [9]
+#### FaaS ile Barındırılan MCP Hizmetleri
+**AgentX** çalışması, MCP sunucularının **FaaS** üzerinde barındırılmasının başarı, gecikme ve maliyet açısından avantajlarını gösterir; **patlama** tarzı kullanım profilleriyle doğal uyum sağlar. [9]
 
 #### MoE Mimarilerinde MCP
-**Uzman KarÄ±ÅŸÄ±mÄ± (MoE)** senaryolarÄ±nda MCP, **MITRE ATT&CK, MISP, CVE** gibi tehdit istihbaratÄ± kaynaklarÄ±nÄ± baÄŸlayarak **semantik baÄŸlam farkÄ±ndalÄ±ÄŸÄ±** saÄŸlar; endÃ¼striyel ortamlarda uyarlanabilir karar vermeyi gÃ¼Ã§lendirir.
+**Uzman Karışımı (MoE)** senaryolarında MCP, **MITRE ATT&CK, MISP, CVE** gibi tehdit istihbaratı kaynaklarını bağlayarak **semantik bağlam farkındalığı** sağlar; endüstriyel ortamlarda uyarlanabilir karar vermeyi güçlendirir.
 
-**Tablo 1 â€“ Temel MCP AraÅŸtÄ±rmalarÄ± (2025 KÃ¼mesi): Zaman Ã‡izelgesi ve Odak**
+**Tablo 1 – Temel MCP Araştırmaları (2025 Kümesi): Zaman Çizelgesi ve Odak**
 
-| Ã‡alÄ±ÅŸma (KÄ±saltma)                                   | YayÄ±n (YaklaÅŸÄ±k) | Birincil Tema            | Ana Mimari KavramÄ±                              |
+| Çalışma (Kısaltma)                                   | Yayın (Yaklaşık) | Birincil Tema            | Ana Mimari Kavramı                              |
 |------------------------------------------------------|------------------|--------------------------|--------------------------------------------------|
-| MCP â€“ Manzara & GÃ¼venlik (Hou ve ark.)               | 2025-03          | TanÄ±m & GÃ¼venlik         | Tam Sunucu YaÅŸam DÃ¶ngÃ¼sÃ¼; Tehdit SÄ±nÄ±flandÄ±rmasÄ± |
-| MCPmed â€“ Biyoinformatik Ã‡aÄŸrÄ±sÄ±                      | 2025-07          | Alan UzmanlÄ±ÄŸÄ±           | FAIR-uyumlu makine-okunur katman                 |
-| Help or Hindrance? (MCPGAUGE)                        | 2025-08          | Ampirik DeÄŸerlendirme    | Proaktiflik/Genel Gider Analizi                  |
-| AgentX â€“ FaaS Ã¼zerinde MCP                            | 2025-09          | Ä°ÅŸ AkÄ±ÅŸÄ± DÃ¼zenleme       | FaaS-barÄ±ndÄ±rmalÄ± MCP Hizmetleri                 |
+| MCP – Manzara & Güvenlik (Hou ve ark.)               | 2025-03          | Tanım & Güvenlik         | Tam Sunucu Yaşam Döngüsü; Tehdit Sınıflandırması |
+| MCPmed – Biyoinformatik Çağrısı                      | 2025-07          | Alan Uzmanlığı           | FAIR-uyumlu makine-okunur katman                 |
+| Help or Hindrance? (MCPGAUGE)                        | 2025-08          | Ampirik Değerlendirme    | Proaktiflik/Genel Gider Analizi                  |
+| AgentX – FaaS üzerinde MCP                            | 2025-09          | İş Akışı Düzenleme       | FaaS-barındırmalı MCP Hizmetleri                 |
 
-### YÃ¶rÃ¼nge: Proaktif GÃ¼venlik TasarÄ±mÄ± ve Tehdit SÄ±nÄ±flandÄ±rmasÄ±
-MCP ile **Ã§ift yÃ¶nlÃ¼ iletiÅŸim**, yeni saldÄ±rÄ± yÃ¼zeyleri getirir. LiteratÃ¼r, 4 saldÄ±rgan tÃ¼rÃ¼ ve **16 tehdit senaryosu** ile kapsamlÄ± bir **tehdit modeli** sunar ve yaÅŸam dÃ¶ngÃ¼sÃ¼-Ã¶zgÃ¼ **uygulanabilir Ã¶nlemler** Ã¶nerir. [2]
+### Yörünge: Proaktif Güvenlik Tasarımı ve Tehdit Sınıflandırması
+MCP ile **çift yönlü iletişim**, yeni saldırı yüzeyleri getirir. Literatür, 4 saldırgan türü ve **16 tehdit senaryosu** ile kapsamlı bir **tehdit modeli** sunar ve yaşam döngüsü-özgü **uygulanabilir önlemler** önerir. [2]
 
-### YÃ¶rÃ¼nge: Performans DoÄŸrulama ve AraÃ§ KullanÄ±mÄ±nÄ±n Engeli
-**MCPGAUGE**, 160 prompt/25 veri seti/â‰ˆ20k API Ã§aÄŸrÄ±sÄ± ile 6 ticari LLM ve 30 MCP araÃ§ paketinde 4 boyutta Ã¶lÃ§Ã¼m yapar: **Proaktiflik, Uyum, Etkinlik, Genel Gider**. Bulgular, MCPâ€™nin mimari yararlarÄ±nÄ±n **otomatik performans artÄ±ÅŸÄ±** garantilemediÄŸini; **uyum/proaktiflik** dÃ¼ÅŸÃ¼klÃ¼ÄŸÃ¼ ve **ek yÃ¼k** sorunlarÄ±nÄ±n kritik olduÄŸunu gÃ¶sterir. (LLM eÄŸitimi ve ince ayarlarÄ±nÄ±n MCP-uyumlu optimizasyonu Ã¶nerilir.)
+### Yörünge: Performans Doğrulama ve Araç Kullanımının Engeli
+**MCPGAUGE**, 160 prompt/25 veri seti/≈20k API çağrısı ile 6 ticari LLM ve 30 MCP araç paketinde 4 boyutta ölçüm yapar: **Proaktiflik, Uyum, Etkinlik, Genel Gider**. Bulgular, MCP’nin mimari yararlarının **otomatik performans artışı** garantilemediğini; **uyum/proaktiflik** düşüklüğü ve **ek yük** sorunlarının kritik olduğunu gösterir. (LLM eğitimi ve ince ayarlarının MCP-uyumlu optimizasyonu önerilir.)
 
-**Tablo 2 â€“ MCP Entegrasyonu: Avantajlar, Riskler ve Performans BoyutlarÄ±**
+**Tablo 2 – MCP Entegrasyonu: Avantajlar, Riskler ve Performans Boyutları**
 
-| Kategori     | GÃ¶zlemlenen Fayda                                           | Risk/SÄ±nÄ±rlama                                  | Ä°lgili Boyut     |
+| Kategori     | Gözlemlenen Fayda                                           | Risk/Sınırlama                                  | İlgili Boyut     |
 |--------------|--------------------------------------------------------------|--------------------------------------------------|------------------|
-| Mimari       | BirleÅŸik/dinamik araÃ§ keÅŸfi; FaaS Ã¶lÃ§eklenebilirliÄŸi; MoE    | Tam yaÅŸam dÃ¶ngÃ¼sÃ¼ yÃ¶netimi (16 faaliyet)         | **Etkinlik**     |
-| Ä°ÅŸlevsel     | Anlamsal baÄŸlam; dinamik veri yorumlama; Ã¶zerklik            | Uyum eksikliÄŸi; dÃ¼ÅŸÃ¼k proaktiflik                | **Proaktiflik/ Uyumluluk** |
-| Operasyonel  | Tekrarlanabilirlik; mÃ¼dahalesiz varlÄ±k yÃ¶netimi               | Hesaplama maliyeti ve gecikme                    | **Genel Gider**  |
-| GÃ¼venlik     | DÄ±ÅŸ tehdit istihbaratÄ± entegrasyonu                           | 16 tehdit senaryosuna maruziyet                  | â€”                |
+| Mimari       | Birleşik/dinamik araç keşfi; FaaS ölçeklenebilirliği; MoE    | Tam yaşam döngüsü yönetimi (16 faaliyet)         | **Etkinlik**     |
+| İşlevsel     | Anlamsal bağlam; dinamik veri yorumlama; özerklik            | Uyum eksikliği; düşük proaktiflik                | **Proaktiflik/ Uyumluluk** |
+| Operasyonel  | Tekrarlanabilirlik; müdahalesiz varlık yönetimi               | Hesaplama maliyeti ve gecikme                    | **Genel Gider**  |
+| Güvenlik     | Dış tehdit istihbaratı entegrasyonu                           | 16 tehdit senaryosuna maruziyet                  | —                |
 
-### YÃ¶rÃ¼nge: GeliÅŸmiÅŸ Ajan Ä°ÅŸ AkÄ±ÅŸÄ± DÃ¼zenleme
-**AgentX** modeli (sahne tasarÄ±mcÄ±sÄ±, planlayÄ±cÄ±, yÃ¼rÃ¼tÃ¼cÃ¼) ile **FaaS-barÄ±ndÄ±rmalÄ± MCP** araÃ§larÄ±; pratik uygulamalarda **baÅŸarÄ±, gecikme, maliyet** aÃ§Ä±sÄ±ndan avantaj saÄŸlar. **GenAI + MCP + Applied ML** birlikteliÄŸi, saÄŸlÄ±k/finans/robotik gibi alanlarda **baÄŸlam duyarlÄ± otonomi** iÃ§in temel sunar. [6,9]
+### Yörünge: Gelişmiş Ajan İş Akışı Düzenleme
+**AgentX** modeli (sahne tasarımcısı, planlayıcı, yürütücü) ile **FaaS-barındırmalı MCP** araçları; pratik uygulamalarda **başarı, gecikme, maliyet** açısından avantaj sağlar. **GenAI + MCP + Applied ML** birlikteliği, sağlık/finans/robotik gibi alanlarda **bağlam duyarlı otonomi** için temel sunar. [6,9]
 
-### YÃ¶rÃ¼nge: Alanlar ArasÄ± UzmanlaÅŸma ve Standardizasyon
+### Yörünge: Alanlar Arası Uzmanlaşma ve Standardizasyon
 
-#### MCPmed: Biyomedikal AraÅŸtÄ±rmada FAIR Ä°lkeleri
-GEO, STRING, UCSC Cell Browser gibi **insan-merkezli** web sunucularÄ±nÄ±n **LLM-okunabilirliÄŸini** MCP ile artÄ±rma Ã§aÄŸrÄ±sÄ±; **yapÄ±landÄ±rÄ±lmÄ±ÅŸ, makine-iÅŸlenebilir katman** ile otomasyon/tekrarlanabilirlik/birlikte Ã§alÄ±ÅŸabilirlik kazancÄ±. [7]
+#### MCPmed: Biyomedikal Araştırmada FAIR İlkeleri
+GEO, STRING, UCSC Cell Browser gibi **insan-merkezli** web sunucularının **LLM-okunabilirliğini** MCP ile artırma çağrısı; **yapılandırılmış, makine-işlenebilir katman** ile otomasyon/tekrarlanabilirlik/birlikte çalışabilirlik kazancı. [7]
 
-#### Kritik AltyapÄ± VarlÄ±k KeÅŸfi
-ICSâ€™de **deterministik araÃ§larÄ±n** sÄ±nÄ±rlamalarÄ±na karÅŸÄ±; MoE + MCP ile **tehdit istihbaratÄ±** (MITRE ATT&CK, MISP, CVE) entegrasyonu ve **baÄŸlam zenginleÅŸtirme** Ã¼zerinden uyarlanabilir keÅŸif ve gÃ¼venlik duruÅŸu gÃ¼Ã§lendirme. [11]
+#### Kritik Altyapı Varlık Keşfi
+ICS’de **deterministik araçların** sınırlamalarına karşı; MoE + MCP ile **tehdit istihbaratı** (MITRE ATT&CK, MISP, CVE) entegrasyonu ve **bağlam zenginleştirme** üzerinden uyarlanabilir keşif ve güvenlik duruşu güçlendirme. [11]
 
-**Tablo 3 â€“ Alan Spesifik Zorluklarda MCPâ€™nin RolÃ¼**
+**Tablo 3 – Alan Spesifik Zorluklarda MCP’nin Rolü**
 
-| Etki AlanÄ±              | MCP Ã–ncesi SÄ±nÄ±rlama                                   | MCP Ã‡Ã¶zÃ¼mÃ¼/Ã‡erÃ§evesi                               | Temel MCP Ä°ÅŸlevi                              |
+| Etki Alanı              | MCP Öncesi Sınırlama                                   | MCP Çözümü/Çerçevesi                               | Temel MCP İşlevi                              |
 |-------------------------|---------------------------------------------------------|-----------------------------------------------------|-----------------------------------------------|
-| Biyoinformatik/AraÅŸtÄ±rma| LLM-okunabilirliÄŸini sÄ±nÄ±rlayan insan-merkezli sunucular| **MCPmed**; hafif â€œbreadcrumbâ€ ve ÅŸablonlar         | FAIR uyumlu **makine-iÅŸlenebilir eriÅŸim** [7] |
-| Kritik AltyapÄ± (ICS)    | BaÄŸlamsal muhakemeden yoksun deterministik araÃ§lar     | MoE + MCP ile tehdit istihbaratÄ± entegrasyonu       | **BaÄŸlam enjeksiyonu** (MISP/CVE baÄŸlama)     |
+| Biyoinformatik/Araştırma| LLM-okunabilirliğini sınırlayan insan-merkezli sunucular| **MCPmed**; hafif “breadcrumb” ve şablonlar         | FAIR uyumlu **makine-işlenebilir erişim** [7] |
+| Kritik Altyapı (ICS)    | Bağlamsal muhakemeden yoksun deterministik araçlar     | MoE + MCP ile tehdit istihbaratı entegrasyonu       | **Bağlam enjeksiyonu** (MISP/CVE bağlama)     |
 
-### Google Scholar Ã–zet Koleksiyonu (Markdown)
+### Google Scholar Özet Koleksiyonu (Markdown)
 
-- **Model BaÄŸlam ProtokolÃ¼ (MCP): Genel Durum, GÃ¼venlik Tehditleri ve Gelecek YÃ¶nelimler** â€” *Hou ve ark.*
-  **Ã–zet:** MCP, birleÅŸik, Ã§ift yÃ¶nlÃ¼â€¦ **[Kaynak: 2]**
+- **Model Bağlam Protokolü (MCP): Genel Durum, Güvenlik Tehditleri ve Gelecek Yönelimler** — *Hou ve ark.*
+  **Özet:** MCP, birleşik, çift yönlü… **[Kaynak: 2]**
 
-- **AgentX: FaaS-BarÄ±ndÄ±rÄ±lan MCP Hizmetleri ile SaÄŸlam Ajan Ä°ÅŸ AkÄ±ÅŸlarÄ±** â€” *Tokal ve ark.*
-  **Ã–zet:** GenAI Ã§eÅŸitli alanlarÄ± dÃ¶nÃ¼ÅŸtÃ¼rmÃ¼ÅŸtÃ¼râ€¦ **[Kaynak: 9]**
+- **AgentX: FaaS-Barındırılan MCP Hizmetleri ile Sağlam Ajan İş Akışları** — *Tokal ve ark.*
+  **Özet:** GenAI çeşitli alanları dönüştürmüştür… **[Kaynak: 9]**
 
-- **Help or Hindrance? Rethinking LLMs Empowered with MCP** â€” *Song ve ark.*
-  **Ã–zet:** MCP, LLMâ€™lerin eriÅŸimini saÄŸlarâ€¦ **[Kaynak: 10]**
+- **Help or Hindrance? Rethinking LLMs Empowered with MCP** — *Song ve ark.*
+  **Özet:** MCP, LLM’lerin erişimini sağlar… **[Kaynak: 10]**
 
-- **MCPmed: LLM-OdaklÄ± KeÅŸif iÃ§in MCP-Destekli Biyoinformatik Web Hizmetleri Ã‡aÄŸrÄ±sÄ±** â€” *Flotho ve ark.*
-  **Ã–zet:** Biyoinformatik web sunucularÄ±â€¦ **[Kaynak: 7]**
+- **MCPmed: LLM-Odaklı Keşif için MCP-Destekli Biyoinformatik Web Hizmetleri Çağrısı** — *Flotho ve ark.*
+  **Özet:** Biyoinformatik web sunucuları… **[Kaynak: 7]**
 
-- **Integrating GenAI & MCP with Applied ML for Advanced Agentic AI Systems** â€” *Bhandarwar*
-  **Ã–zet:** GenAI, MCP ve UygulamalÄ± MLâ€¦ **[Kaynak: 12]**
+- **Integrating GenAI & MCP with Applied ML for Advanced Agentic AI Systems** — *Bhandarwar*
+  **Özet:** GenAI, MCP ve Uygulamalı ML… **[Kaynak: 12]**
 
-### Sentez ve Gelecekteki Standardizasyon ZorluklarÄ±
+### Sentez ve Gelecekteki Standardizasyon Zorlukları
 
-MCP, birinci nesil ajan sistemlerinin **Ã¶lÃ§eklenebilirlik** ve **baÄŸlam yÃ¶netimi** sÄ±nÄ±rlarÄ±nÄ± aÅŸmak iÃ§in gerekli mimari olgunluÄŸu saÄŸlar; **otomasyon** (AutoMCP), **FaaS daÄŸÄ±tÄ±mÄ±** (AgentX) ve **alan-Ã¶zgÃ¼ adaptasyonlar** (MCPmed) bunu destekler.
-KalÄ±cÄ± iki zorunluluk:
-- **GÃ¼venlik Riski YÃ¶netimi:** 16 tehdit senaryosu ve 4 saldÄ±rgan tÃ¼rÃ¼; yaÅŸam dÃ¶ngÃ¼sÃ¼-Ã¶zgÃ¼ Ã¶nlemler, **politika yÃ¶netimi** ve **denetim izleri** ÅŸart. [2]
-- **Verimlilik ve Model UyumluluÄŸu:** MCPGAUGE, **uyum/proaktiflik** ve **ek yÃ¼k** sorunlarÄ±na iÅŸaret eder; **MCP-uyumlu eÄŸitim** ve **etkileÅŸim maliyeti azaltÄ±mÄ±** Ã¶nceliklidir. [10]
+MCP, birinci nesil ajan sistemlerinin **ölçeklenebilirlik** ve **bağlam yönetimi** sınırlarını aşmak için gerekli mimari olgunluğu sağlar; **otomasyon** (AutoMCP), **FaaS dağıtımı** (AgentX) ve **alan-özgü adaptasyonlar** (MCPmed) bunu destekler.
+Kalıcı iki zorunluluk:
+- **Güvenlik Riski Yönetimi:** 16 tehdit senaryosu ve 4 saldırgan türü; yaşam döngüsü-özgü önlemler, **politika yönetimi** ve **denetim izleri** şart. [2]
+- **Verimlilik ve Model Uyumluluğu:** MCPGAUGE, **uyum/proaktiflik** ve **ek yük** sorunlarına işaret eder; **MCP-uyumlu eğitim** ve **etkileşim maliyeti azaltımı** önceliklidir. [10]
 
-**SÃ¼rdÃ¼rÃ¼lebilir BÃ¼yÃ¼me:** MCPmed ve ICS Ã¶rnekleri, protokolÃ¼n **uyarlanabilirliÄŸini** gÃ¶sterir. Gelecek Ã§alÄ±ÅŸmalar, **standardizasyonun gÃ¼Ã§lendirilmesi**, **gÃ¼ven sÄ±nÄ±rlarÄ±nÄ±n iyileÅŸtirilmesi** ve **LLM performansÄ±nÄ±n MCPâ€™ye optimize edilmesi**ne odaklanmalÄ±dÄ±r.
+**Sürdürülebilir Büyüme:** MCPmed ve ICS örnekleri, protokolün **uyarlanabilirliğini** gösterir. Gelecek çalışmalar, **standardizasyonun güçlendirilmesi**, **güven sınırlarının iyileştirilmesi** ve **LLM performansının MCP’ye optimize edilmesi**ne odaklanmalıdır.
 
 ### Ek Kaynaklar
 
-7. **MCPmed: A Call for MCP-Enabled Bioinformatics Web Services** â€“ arXiv â†’ https://arxiv.org/abs/2507.08055
-8. **MCPmed (HTML sÃ¼rÃ¼m)** â€“ arXiv â†’ https://arxiv.org/html/2507.08055v1
-9. **AgentX: Toward Robust Agent Workflow with FaaS-Hosted MCP Services** â€“ arXiv â†’ https://arxiv.org/abs/2509.07595
-10. **Help or Hindrance? Rethinking LLMs Empowered with MCP** â€“ arXiv â†’ https://arxiv.org/abs/2508.12566
-11. **Asset Discovery in Critical Infrastructures: An LLM-Based Approach** â€“ MDPI â†’ https://www.mdpi.com/2079-9292/14/16/3267
-12. **Integrating Generative AI & MCP with Applied MLâ€¦** â€“ ResearchGate â†’ (PDF baÄŸlantÄ±sÄ± kullanÄ±cÄ± paylaÅŸÄ±mlÄ±)
+7. **MCPmed: A Call for MCP-Enabled Bioinformatics Web Services** – arXiv → https://arxiv.org/abs/2507.08055
+8. **MCPmed (HTML sürüm)** – arXiv → https://arxiv.org/html/2507.08055v1
+9. **AgentX: Toward Robust Agent Workflow with FaaS-Hosted MCP Services** – arXiv → https://arxiv.org/abs/2509.07595
+10. **Help or Hindrance? Rethinking LLMs Empowered with MCP** – arXiv → https://arxiv.org/abs/2508.12566
+11. **Asset Discovery in Critical Infrastructures: An LLM-Based Approach** – MDPI → https://www.mdpi.com/2079-9292/14/16/3267
+12. **Integrating Generative AI & MCP with Applied ML…** – ResearchGate → (PDF bağlantısı kullanıcı paylaşımlı)
 
-> **Not:** BazÄ± baÄŸlantÄ±lar Ã¼Ã§Ã¼ncÃ¼ taraf barÄ±ndÄ±rÄ±cÄ±lar Ã¼zerinde olabilir ve eriÅŸim kÄ±sÄ±tlarÄ±/URL deÄŸiÅŸimleri iÃ§erebilir.
+> **Not:** Bazı bağlantılar üçüncü taraf barındırıcılar üzerinde olabilir ve erişim kısıtları/URL değişimleri içerebilir.
+
 
 ---
+## Ek C: Güncel Olaylar
 
-## Ek C: GÃ¼ncel Olaylar
+### MCP'de Araç Zehirleme Saldırıları (Tool Poisoning Attacks)
+MCP sunucularında araç tanımlarına gizli zararlı talimatlar enjekte edilerek AI asistanlarının manipüle edilmesi, SSH anahtarları ve API anahtarları gibi hassas verilerin sızdırılmasına yol açan kritik bir tehdit. Saldırılar, kullanıcı onayı altında gizli eylemler gerçekleştirerek veri dışa aktarımı veya yetkisiz erişim sağlıyor. Geniş çapta tartışılan bu saldırı türü, MCP'nin tedarik zinciri risklerini vurguluyor.
 
-### MCP'de AraÃ§ Zehirleme SaldÄ±rÄ±larÄ± (Tool Poisoning Attacks)
-MCP sunucularÄ±nda araÃ§ tanÄ±mlarÄ±na gizli zararlÄ± talimatlar enjekte edilerek AI asistanlarÄ±nÄ±n manipÃ¼le edilmesi, SSH anahtarlarÄ± ve API anahtarlarÄ± gibi hassas verilerin sÄ±zdÄ±rÄ±lmasÄ±na yol aÃ§an kritik bir tehdit. SaldÄ±rÄ±lar, kullanÄ±cÄ± onayÄ± altÄ±nda gizli eylemler gerÃ§ekleÅŸtirerek veri dÄ±ÅŸa aktarÄ±mÄ± veya yetkisiz eriÅŸim saÄŸlÄ±yor. GeniÅŸ Ã§apta tartÄ±ÅŸÄ±lan bu saldÄ±rÄ± tÃ¼rÃ¼, MCP'nin tedarik zinciri risklerini vurguluyor.
-
-Ä°lgili X postlarÄ±:
+İlgili X postları:
 - https://x.com/Graham_dePenros/status/1976216281033408741
 - https://x.com/lbeurerkellner/status/1907075048118059101
 - https://x.com/akshay_pachaar/status/1947246782221816087
@@ -474,228 +628,228 @@ MCP sunucularÄ±nda araÃ§ tanÄ±mlarÄ±na gizli zararlÄ± talimatlar enjek
 - https://x.com/OpenCodeMission/status/1976245247685316721
 - https://x.com/theagentangle/status/1976018568413405335
 
-### MCP Ãœst 25 Zafiyet Raporu (Top 25 Vulnerabilities Report)
-MCP'de tespit edilen 25 kritik zafiyetin 18'i kolay sÃ¶mÃ¼rÃ¼lebilir olarak sÄ±nÄ±flandÄ±rÄ±lÄ±yor; prompt enjeksiyonu, komut enjeksiyonu ve eksik kimlik doÄŸrulamasÄ± gibi temel gÃ¼venlik hatalarÄ±, web geliÅŸtirme standartlarÄ±nÄ±n gerisinde kalÄ±yor. Rapor, AI ajanlarÄ±nÄ±n veritabanÄ± ve dosya sistemi eriÅŸimlerinde input doÄŸrulama eksikliÄŸini vurgulayarak Ã¼retim ortamlarÄ±nda acil gÃ¼venlik disiplini gerekliliÄŸini belirtiyor.
+### MCP Üst 25 Zafiyet Raporu (Top 25 Vulnerabilities Report)
+MCP'de tespit edilen 25 kritik zafiyetin 18'i kolay sömürülebilir olarak sınıflandırılıyor; prompt enjeksiyonu, komut enjeksiyonu ve eksik kimlik doğrulaması gibi temel güvenlik hataları, web geliştirme standartlarının gerisinde kalıyor. Rapor, AI ajanlarının veritabanı ve dosya sistemi erişimlerinde input doğrulama eksikliğini vurgulayarak üretim ortamlarında acil güvenlik disiplini gerekliliğini belirtiyor.
 
-Ä°lgili X postlarÄ±:
+İlgili X postları:
 - https://x.com/rryssf_/status/1970524674439422444
 - https://x.com/kakarot_ai/status/1975599529681690820
-- https://x.com/lbeurerkellner/status/1907075048118059101 (baÄŸlantÄ±lÄ± tartÄ±ÅŸma)
+- https://x.com/lbeurerkellner/status/1907075048118059101 (bağlantılı tartışma)
 
-### AÃ§Ä±kta Kalan MCP SunucularÄ± (Exposed MCP Servers)
-Trend Micro tarafÄ±ndan tespit edilen 492 aÃ§Ä±k MCP sunucusu, kimlik doÄŸrulamasÄ± veya ÅŸifreleme olmadan Ã§evrimiÃ§i eriÅŸime maruz; %90'Ä± doÄŸal dil sorgularÄ± ile hassas verilere (bulut kaynaklarÄ±, mÃ¼ÅŸteri bilgileri) doÄŸrudan okuma eriÅŸimi saÄŸlÄ±yor. KQL sorgularÄ± ile bu sunucularÄ±n avlanmasÄ± Ã¶neriliyor, ciddi veri sÄ±zÄ±ntÄ±sÄ± riski taÅŸÄ±yor.
+### Açıkta Kalan MCP Sunucuları (Exposed MCP Servers)
+Trend Micro tarafından tespit edilen 492 açık MCP sunucusu, kimlik doğrulaması veya şifreleme olmadan çevrimiçi erişime maruz; %90'ı doğal dil sorguları ile hassas verilere (bulut kaynakları, müşteri bilgileri) doğrudan okuma erişimi sağlıyor. KQL sorguları ile bu sunucuların avlanması öneriliyor, ciddi veri sızıntısı riski taşıyor.
 
-Ä°lgili X postlarÄ±:
+İlgili X postları:
 - https://x.com/0x534c/status/1956999290863370481
 
-### Figma MCP Sunucusu Uzak Kod YÃ¼rÃ¼tme Zafiyeti (Figma MCP RCE Vulnerability)
-Figma'nÄ±n MCP sunucusunda (CVE-2025-53967) tespit edilen kritik zafiyet, zararlÄ± API istekleri yoluyla uzak kod yÃ¼rÃ¼tmeye izin veriyor; AI prompt enjeksiyonu ve DNS rebinding ile sÃ¶mÃ¼rÃ¼lebilir. v0.6.3 sÃ¼rÃ¼mÃ¼ne gÃ¼ncelleme zorunlu, aksi halde sistemsel uzlaÅŸma mÃ¼mkÃ¼n.
+### Figma MCP Sunucusu Uzak Kod Yürütme Zafiyeti (Figma MCP RCE Vulnerability)
+Figma'nın MCP sunucusunda (CVE-2025-53967) tespit edilen kritik zafiyet, zararlı API istekleri yoluyla uzak kod yürütmeye izin veriyor; AI prompt enjeksiyonu ve DNS rebinding ile sömürülebilir. v0.6.3 sürümüne güncelleme zorunlu, aksi halde sistemsel uzlaşma mümkün.
 
-Ä°lgili X postlarÄ±:
+İlgili X postları:
 - https://x.com/freedomhack101/status/1976288100243607552
 - https://x.com/shah_sheikh/status/1975889172872286316
 - https://x.com/TweetThreatNews/status/1975997613221572728
 
-### Sahte npm Paketi Arka KapÄ± OlayÄ± (Fake npm Package Backdoor - postmark-mcp)
-postmark-mcp adlÄ± sahte npm paketi, her e-postayÄ± gizlice BCC ile saldÄ±rgana yÃ¶nlendirerek 1.600 indirmeden sonra kaldÄ±rÄ±ldÄ±; faturalar ve ÅŸifre sÄ±fÄ±rlamalarÄ± gibi verileri sÄ±zdÄ±rdÄ±. MCP tedarik zinciri saldÄ±rÄ±larÄ±nÄ± yansÄ±tÄ±yor, imzalÄ± kayÄ±tlar ve sandbox izinleri Ã¶neriliyor.
+### Sahte npm Paketi Arka Kapı Olayı (Fake npm Package Backdoor - postmark-mcp)
+postmark-mcp adlı sahte npm paketi, her e-postayı gizlice BCC ile saldırgana yönlendirerek 1.600 indirmeden sonra kaldırıldı; faturalar ve şifre sıfırlamaları gibi verileri sızdırdı. MCP tedarik zinciri saldırılarını yansıtıyor, imzalı kayıtlar ve sandbox izinleri öneriliyor.
 
-Ä°lgili X postlarÄ±:
+İlgili X postları:
 - https://x.com/TheHackersNews/status/1972581724992528746
 - https://x.com/theagentangle/status/1976018568413405335
 - https://x.com/iamKierraD/status/1975226041309299085
 
-### MCP GÃ¼venlik Kontrol Listesi (MCP Security Checklist)
-SlowMist tarafÄ±ndan yayÄ±nlanan MCP gÃ¼venlik rehberi, ana bilgisayar, istemci ve sunucu katmanlarÄ±nda riskleri kapsÄ±yor; Ã§oklu MCP ve kripto para entegrasyonlarÄ±nda Ã¶zel tehditler vurgulanÄ±yor. AI ve blockchain ekosistemlerinin gÃ¼venli entegrasyonu iÃ§in temel Ã¶nlemler sunuyor.
+### MCP Güvenlik Kontrol Listesi (MCP Security Checklist)
+SlowMist tarafından yayınlanan MCP güvenlik rehberi, ana bilgisayar, istemci ve sunucu katmanlarında riskleri kapsıyor; çoklu MCP ve kripto para entegrasyonlarında özel tehditler vurgulanıyor. AI ve blockchain ekosistemlerinin güvenli entegrasyonu için temel önlemler sunuyor.
 
-Ä°lgili X postlarÄ±:
+İlgili X postları:
 - https://x.com/SlowMist_Team/status/1911678320531607903
 
-### MCP YÄ±ÄŸÄ±nlarÄ±nda %92 SÃ¶mÃ¼rÃ¼ OlasÄ±lÄ±ÄŸÄ± (92% Exploit Probability in MCP Stacks)
-MCP eklenti yÄ±ÄŸÄ±nlarÄ±nda %92 sÃ¶mÃ¼rÃ¼ olasÄ±lÄ±ÄŸÄ±, kurumsal gÃ¼venlik kÃ¶r noktalarÄ±nÄ± artÄ±rÄ±yor; CVEs analizi ve savunma stratejileri, eriÅŸim sÄ±kÄ±laÅŸtÄ±rmasÄ± ve zayÄ±f noktalarÄ± tespit etmeyi Ã¶neriyor. Eklenti zincirleri bÃ¼yÃ¼k Ã¶lÃ§ekli sÃ¶mÃ¼rÃ¼lere yol aÃ§abiliyor.
+### MCP Yığınlarında %92 Sömürü Olasılığı (92% Exploit Probability in MCP Stacks)
+MCP eklenti yığınlarında %92 sömürü olasılığı, kurumsal güvenlik kör noktalarını artırıyor; CVEs analizi ve savunma stratejileri, erişim sıkılaştırması ve zayıf noktaları tespit etmeyi öneriyor. Eklenti zincirleri büyük ölçekli sömürülere yol açabiliyor.
 
-Ä°lgili X postlarÄ±:
+İlgili X postları:
 - https://x.com/jfrog/status/1976719975881617553
 - https://x.com/LouisColumbus/status/1976393986156941725
 
-### MCP Tehditlerinin Sistematik Ã‡alÄ±ÅŸmasÄ± (Systematic Study of MCP Threats)
-MCP yaÅŸam dÃ¶ngÃ¼sÃ¼nde 16 tehdit senaryosu tanÄ±mlayan Ã§alÄ±ÅŸma, kÃ¶tÃ¼ niyetli geliÅŸtiriciler, kullanÄ±cÄ±lar ve dÄ±ÅŸ saldÄ±rganlarÄ± kapsÄ±yor; gerÃ§ek dÃ¼nya vakalarÄ±yla desteklenen faz bazlÄ± gÃ¼venlik Ã¶nlemleri Ã¶neriliyor. Interoperabilite iÃ§in gÃ¼venli benimseme yol haritasÄ± sunuyor.
+### MCP Tehditlerinin Sistematik Çalışması (Systematic Study of MCP Threats)
+MCP yaşam döngüsünde 16 tehdit senaryosu tanımlayan çalışma, kötü niyetli geliştiriciler, kullanıcılar ve dış saldırganları kapsıyor; gerçek dünya vakalarıyla desteklenen faz bazlı güvenlik önlemleri öneriliyor. Interoperabilite için güvenli benimseme yol haritası sunuyor.
 
-Ä°lgili X postlarÄ±:
+İlgili X postları:
 - https://x.com/jiqizhixin/status/1976109107804270655
-- https://x.com/vlruso/status/1977603410690977952 (baÄŸlantÄ±lÄ± tartÄ±ÅŸma)
+- https://x.com/vlruso/status/1977603410690977952 (bağlantılı tartışma)
 
-### MCP Prompt Enjeksiyonu ve Ajan GÃ¼venliÄŸi (MCP Prompt Injection and Agent Security)
-MCP'de prompt enjeksiyonu, gÃ¼venilmeyen girdilere maruz kalan araÃ§lardan kaynaklanÄ±yor; Ã¶zellikle yerel ajanlarda (Cursor, Claude Code) risk yÃ¼ksek. BaÄŸlayÄ±cÄ±lar ve bellek Ã¶zellikleriyle birleÅŸince veri sÄ±zÄ±ntÄ±sÄ± artÄ±yor, araÃ§larÄ± sandbox'lama Ã¶neriliyor.
+### MCP Prompt Enjeksiyonu ve Ajan Güvenliği (MCP Prompt Injection and Agent Security)
+MCP'de prompt enjeksiyonu, güvenilmeyen girdilere maruz kalan araçlardan kaynaklanıyor; özellikle yerel ajanlarda (Cursor, Claude Code) risk yüksek. Bağlayıcılar ve bellek özellikleriyle birleşince veri sızıntısı artıyor, araçları sandbox'lama öneriliyor.
 
-Ä°lgili X postlarÄ±:
+İlgili X postları:
 - https://x.com/simonw/status/1909955640107430226
 - https://x.com/karpathy/status/1934657940155441477
 - https://x.com/Rajan_Medhekar/status/1977601624110768573
 - https://x.com/liran_tal/status/1976362229294387584
 - https://x.com/UndercodeUpdate/status/1977524734230229026
 
-### MCP SunucularÄ±nda KÃ¶tÃ¼ye KullanÄ±m ve Kripto Entegrasyonu Tehditleri (MCP Plugin Abuse and Crypto Integration Risks)
-MCP eklenti kÃ¶tÃ¼ye kullanÄ±mÄ± ve kripto entegrasyonlarÄ±, yeni gÃ¼venlik riskleri getiriyor; A2A (ajan-ajan) etkileÅŸimlerinde Ã§oÄŸaltÄ±cÄ± tehdit yÃ¼zeyi oluÅŸuyor. AI odaklÄ± savunmalar ve sÄ±fÄ±r gÃ¼ven mimarisi zorunlu.
+### MCP Sunucularında Kötüye Kullanım ve Kripto Entegrasyonu Tehditleri (MCP Plugin Abuse and Crypto Integration Risks)
+MCP eklenti kötüye kullanımı ve kripto entegrasyonları, yeni güvenlik riskleri getiriyor; A2A (ajan-ajan) etkileşimlerinde çoğaltıcı tehdit yüzeyi oluşuyor. AI odaklı savunmalar ve sıfır güven mimarisi zorunlu.
 
-Ä°lgili X postlarÄ±:
+İlgili X postları:
 - https://x.com/DarkScorpionAI/status/1977435023147163737
 - https://x.com/vietjovi/status/1977369607015956574
 - https://x.com/eddy_crypt409/status/1915771464764076441
 
 
-- **GÃ¼venlik EndiÅŸeleri TartÄ±ÅŸmalarÄ± Domine Ediyor**: AraÅŸtÄ±rmalar, MCP'nin araÃ§ zehirleme saldÄ±rÄ±larÄ±na karÅŸÄ± savunmasÄ±z olduÄŸunu gÃ¶steriyor. Bu saldÄ±rÄ±larda, kÃ¶tÃ¼ niyetli sunucular araÃ§ aÃ§Ä±klamalarÄ±na zararlÄ± komutlar yerleÅŸtirerek veri sÄ±zdÄ±rÄ±lmasÄ±na veya yetkisiz eylemlere yol aÃ§abiliyor. KanÄ±tlar, yÃ¼ksek istismar olasÄ±lÄ±klarÄ±na iÅŸaret ediyor. Raporlar, eklenti yÄ±ÄŸÄ±nlarÄ±nda %92'ye varan risk olduÄŸunu gÃ¶steriyor, ancak tarayÄ±cÄ±lar ve kontrol listeleri gibi savunma araÃ§larÄ± ortaya Ã§Ä±kmaya baÅŸlÄ±yor.
-- **Son Zamanlarda Ortaya Ã‡Ä±kan GÃ¼venlik AÃ§Ä±klarÄ± ve SÃ¶mÃ¼rÃ¼ler**: Prompt enjeksiyonu ve eksik kimlik doÄŸrulama gibi kritik kusurlarÄ±n, sahte npm paketlerinin e-postalara arka kapÄ± aÃ§masÄ± gibi gerÃ§ek senaryolarda sÃ¶mÃ¼rÃ¼ldÃ¼ÄŸÃ¼ muhtemel gÃ¶rÃ¼nÃ¼yor. Topluluk analizleri, eski web gÃ¼venlik uygulamalarÄ±yla paralellikler kurarak, bu kusurlarÄ±n kolayca sÃ¶mÃ¼rÃ¼lebilir olduÄŸunu vurguluyor.
-- **Yamalar, DÃ¼zeltmeler ve GÃ¼ncellemeler**: GeliÅŸmeler, yeni spesifikasyonlar (Ã¶rneÄŸin, yetkilendirmeyi geliÅŸtiren 2025-06-18 sÃ¼rÃ¼mÃ¼) ve zehirleme veya rug pull'larÄ± tespit eden MCP tarayÄ±cÄ±larÄ± gibi gÃ¼venlik araÃ§larÄ± dahil olmak Ã¼zere, devam eden iyileÅŸtirmelere iÅŸaret etmektedir. Claude, Cursor ve ChatGPT gibi platformlarla entegrasyonlar, iÅŸlevselliÄŸi geniÅŸletirken riskleri azaltmayÄ± amaÃ§lamaktadÄ±r.
-- **GÃ¼ncel GeliÅŸmeler ve Entegrasyonlar**: Protokol, Spring AI, MuleSoft ve blok zinciri platformlarÄ± (Ã¶r. Rootstock, Cardano) gibi ekosistemlerde desteklenerek AI ajanlarÄ± iÃ§in yaygÄ±n olarak benimsenmektedir. Bu, birlikte Ã§alÄ±ÅŸabilirliÄŸi teÅŸvik etmekte ancak aÃ§Ä±k sunucular ve kimlik doÄŸrulama boÅŸluklarÄ± konusunda endiÅŸeleri artÄ±rmaktadÄ±r.
-- **Topluluk ve Resmi TartÄ±ÅŸmalar**: TartÄ±ÅŸmalar, araÅŸtÄ±rmacÄ±larÄ±n ve ÅŸirketlerin faydalar ve riskler konusunda dengeli gÃ¶rÃ¼ÅŸleri vurgulayan analizleriyle, heyecan ve ihtiyatÄ±n karÄ±ÅŸÄ±mÄ± bir havayÄ± yansÄ±tmaktadÄ±r. Resmi duyurular, AI araÃ§ baÄŸlantÄ±larÄ± iÃ§in standardizasyona odaklanÄ±rken, tartÄ±ÅŸmalar AI tabanlÄ± ekonomilerin potansiyelini kabul etmekle birlikte, test edilmemiÅŸ uygulamalar konusunda uyarÄ±da bulunmaktadÄ±r.
-### MCP'ye Genel BakÄ±ÅŸ
-Model Context Protocol (MCP), AI modelleri ve harici araÃ§lar arasÄ±nda Ã§ift yÃ¶nlÃ¼ iletiÅŸim iÃ§in aÃ§Ä±k bir standart gÃ¶revi gÃ¶rÃ¼r ve parÃ§alanmÄ±ÅŸ AI ekosistemlerini birleÅŸtirir. Claude Desktop ve Cursor gibi uygulamalarda uygulanÄ±r ve sorunsuz entegrasyonlar saÄŸlar, ancak eklenti kÃ¶tÃ¼ye kullanÄ±mÄ± gibi yeni riskler getirir. Son zamanlarda yayÄ±nlanan yazÄ±lar, ajanlarÄ±n veri kaynaklarÄ±na zahmetsizce baÄŸlandÄ±ÄŸÄ± ajans AI'daki rolÃ¼nÃ¼ vurgulamaktadÄ±r, ancak bu durum gÃ¼venlik kÃ¶r noktalarÄ±nÄ± artÄ±rmaktadÄ±r.
-### Ã–nemli GÃ¼venlik AÃ§Ä±klarÄ±
-AraÃ§ zehirlenmesi kritik bir sorun olarak Ã¶ne Ã§Ä±kmaktadÄ±r: KÃ¶tÃ¼ niyetli MCP sunucularÄ±, kullanÄ±cÄ± onaylarÄ±nÄ± atlayarak ve zararsÄ±z gÃ¶rÃ¼nÃ¼m altÄ±nda zararlÄ± eylemler gerÃ§ekleÅŸtirerek gizli komutlar enjekte edebilir. DiÄŸer aÃ§Ä±klar arasÄ±nda, aÃ§Ä±kta kalan sunucular (Ã§evrimiÃ§i olarak 492 tane bulunmuÅŸtur), komut enjeksiyonu ve bozuk kimlik doÄŸrulama yer almaktadÄ±r ve bunlar genellikle â€œkolayâ€ olarak deÄŸerlendirilmektedir. Sahte npm paketinin e-postalarÄ± Ã§almasÄ± gibi gerÃ§ek hayattaki olaylar, bu konunun aciliyetini vurgulamaktadÄ±r.
-### Savunmadaki GeliÅŸmeler
-Tehditlere karÅŸÄ± koyma Ã§abalarÄ± arasÄ±nda, ana bilgisayar, istemci ve sunucu katmanlarÄ±nÄ± kapsayan gÃ¼venlik kontrol listeleri ve saldÄ±rÄ±larÄ± tespit etmek iÃ§in Ã¶zel tarayÄ±cÄ±lar bulunmaktadÄ±r. Yamalar, Figma'nÄ±n MCP sunucusunda uzaktan kod yÃ¼rÃ¼tÃ¼lmesine izin veren gibi belirli gÃ¼venlik aÃ§Ä±klarÄ±nÄ± giderir. Vulnerablemcp[.]info gibi topluluk kaynaklarÄ±, saldÄ±rÄ±larÄ± anlamaya ve Ã¶nlemeye yardÄ±mcÄ± olmak iÃ§in saldÄ±rÄ± Ã¶zetleri sunar.
-### Ekosistem BÃ¼yÃ¼mesi
-MCP, blok zincirinden (Ã¶r. DeMCP_AI pazarÄ±) geliÅŸtirici araÃ§larÄ±na (Ã¶r. tarayÄ±cÄ± kontrolÃ¼ iÃ§in Chrome DevTools) kadar Ã§eÅŸitli platformlarla entegre olmaktadÄ±r. GÃ¼ncellemeler, gÃ¼venli Ã¶lÃ§eklendirme iÃ§in daha iyi yetkilendirme gibi kurumsal Ã¶zellikleri geliÅŸtirir. Ancak tartÄ±ÅŸmalar, mevcut API'lerle uyumsuzluk ve uzaktan kurulumlarda kimlik doÄŸrulama zorluklarÄ± gibi sÄ±nÄ±rlamalarÄ± vurgulamaktadÄ±r.
+- **Güvenlik Endişeleri Tartışmaları Domine Ediyor**: Araştırmalar, MCP'nin araç zehirleme saldırılarına karşı savunmasız olduğunu gösteriyor. Bu saldırılarda, kötü niyetli sunucular araç açıklamalarına zararlı komutlar yerleştirerek veri sızdırılmasına veya yetkisiz eylemlere yol açabiliyor. Kanıtlar, yüksek istismar olasılıklarına işaret ediyor. Raporlar, eklenti yığınlarında %92'ye varan risk olduğunu gösteriyor, ancak tarayıcılar ve kontrol listeleri gibi savunma araçları ortaya çıkmaya başlıyor.
+- **Son Zamanlarda Ortaya Çıkan Güvenlik Açıkları ve Sömürüler**: Prompt enjeksiyonu ve eksik kimlik doğrulama gibi kritik kusurların, sahte npm paketlerinin e-postalara arka kapı açması gibi gerçek senaryolarda sömürüldüğü muhtemel görünüyor. Topluluk analizleri, eski web güvenlik uygulamalarıyla paralellikler kurarak, bu kusurların kolayca sömürülebilir olduğunu vurguluyor.
+- **Yamalar, Düzeltmeler ve Güncellemeler**: Gelişmeler, yeni spesifikasyonlar (örneğin, yetkilendirmeyi geliştiren 2025-06-18 sürümü) ve zehirleme veya rug pull'ları tespit eden MCP tarayıcıları gibi güvenlik araçları dahil olmak üzere, devam eden iyileştirmelere işaret etmektedir. Claude, Cursor ve ChatGPT gibi platformlarla entegrasyonlar, işlevselliği genişletirken riskleri azaltmayı amaçlamaktadır.
+- **Güncel Gelişmeler ve Entegrasyonlar**: Protokol, Spring AI, MuleSoft ve blok zinciri platformları (ör. Rootstock, Cardano) gibi ekosistemlerde desteklenerek AI ajanları için yaygın olarak benimsenmektedir. Bu, birlikte çalışabilirliği teşvik etmekte ancak açık sunucular ve kimlik doğrulama boşlukları konusunda endişeleri artırmaktadır.
+- **Topluluk ve Resmi Tartışmalar**: Tartışmalar, araştırmacıların ve şirketlerin faydalar ve riskler konusunda dengeli görüşleri vurgulayan analizleriyle, heyecan ve ihtiyatın karışımı bir havayı yansıtmaktadır. Resmi duyurular, AI araç bağlantıları için standardizasyona odaklanırken, tartışmalar AI tabanlı ekonomilerin potansiyelini kabul etmekle birlikte, test edilmemiş uygulamalar konusunda uyarıda bulunmaktadır.
+### MCP'ye Genel Bakış
+Model Context Protocol (MCP), AI modelleri ve harici araçlar arasında çift yönlü iletişim için açık bir standart görevi görür ve parçalanmış AI ekosistemlerini birleştirir. Claude Desktop ve Cursor gibi uygulamalarda uygulanır ve sorunsuz entegrasyonlar sağlar, ancak eklenti kötüye kullanımı gibi yeni riskler getirir. Son zamanlarda yayınlanan yazılar, ajanların veri kaynaklarına zahmetsizce bağlandığı ajans AI'daki rolünü vurgulamaktadır, ancak bu durum güvenlik kör noktalarını artırmaktadır.
+### Önemli Güvenlik Açıkları
+Araç zehirlenmesi kritik bir sorun olarak öne çıkmaktadır: Kötü niyetli MCP sunucuları, kullanıcı onaylarını atlayarak ve zararsız görünüm altında zararlı eylemler gerçekleştirerek gizli komutlar enjekte edebilir. Diğer açıklar arasında, açıkta kalan sunucular (çevrimiçi olarak 492 tane bulunmuştur), komut enjeksiyonu ve bozuk kimlik doğrulama yer almaktadır ve bunlar genellikle “kolay” olarak değerlendirilmektedir. Sahte npm paketinin e-postaları çalması gibi gerçek hayattaki olaylar, bu konunun aciliyetini vurgulamaktadır.
+### Savunmadaki Gelişmeler
+Tehditlere karşı koyma çabaları arasında, ana bilgisayar, istemci ve sunucu katmanlarını kapsayan güvenlik kontrol listeleri ve saldırıları tespit etmek için özel tarayıcılar bulunmaktadır. Yamalar, Figma'nın MCP sunucusunda uzaktan kod yürütülmesine izin veren gibi belirli güvenlik açıklarını giderir. Vulnerablemcp[.]info gibi topluluk kaynakları, saldırıları anlamaya ve önlemeye yardımcı olmak için saldırı özetleri sunar.
+### Ekosistem Büyümesi
+MCP, blok zincirinden (ör. DeMCP_AI pazarı) geliştirici araçlarına (ör. tarayıcı kontrolü için Chrome DevTools) kadar çeşitli platformlarla entegre olmaktadır. Güncellemeler, güvenli ölçeklendirme için daha iyi yetkilendirme gibi kurumsal özellikleri geliştirir. Ancak tartışmalar, mevcut API'lerle uyumsuzluk ve uzaktan kurulumlarda kimlik doğrulama zorlukları gibi sınırlamaları vurgulamaktadır.
 ---
-Model Context Protocol (MCP), AI alanÄ±nda Ã¶nemli bir aÃ§Ä±k standart olarak ortaya Ã§Ä±kmÄ±ÅŸ ve bÃ¼yÃ¼k dil modelleri (LLM'ler) ile harici araÃ§lar veya veri kaynaklarÄ± arasÄ±nda kesintisiz Ã§ift yÃ¶nlÃ¼ iletiÅŸimi kolaylaÅŸtÄ±rmÄ±ÅŸtÄ±r. AI ekosistemlerindeki parÃ§alanmayÄ± gidermek iÃ§in tasarlanan MCP, tak ve Ã§alÄ±ÅŸtÄ±r entegrasyonlarÄ±nÄ± mÃ¼mkÃ¼n kÄ±larak AI ajanlarÄ±nÄ±n gerÃ§ek zamanlÄ± verilere eriÅŸmesine, eylemleri gerÃ§ekleÅŸtirmesine ve Ã¶zel kodlama olmadan Ã§eÅŸitli sistemlerle etkileÅŸime girmesine olanak tanÄ±r. Genellikle AI iÃ§in TCP/IP'ye benzetilen bu protokol, masaÃ¼stÃ¼ ortamlarÄ±ndaki uygulamalarÄ± (Ã¶r. Claude Desktop, Cursor), blok zinciri pazarlarÄ±nÄ± ve kurumsal yÄ±ÄŸÄ±nlarÄ± destekleyerek geliÅŸtirme karmaÅŸÄ±klÄ±ÄŸÄ±nÄ± azaltÄ±r ve modÃ¼ler AI iÅŸ akÄ±ÅŸlarÄ±nÄ±n Ã¶nÃ¼nÃ¼ aÃ§ar. Ancak, hÄ±zlÄ± benimsenmesi Ã¶nemli gÃ¼venlik sorunlarÄ±nÄ± gÃ¼ndeme getirmiÅŸtir. GeÃ§tiÄŸimiz yÄ±l yapÄ±lan tartÄ±ÅŸmalar, umut verici dÃ¼zeltmeler, gÃ¼ncellemeler ve topluluk odaklÄ± analizlerin yanÄ± sÄ±ra, erken web geliÅŸtirme tuzaklarÄ±nÄ± anÄ±msatan gÃ¼venlik aÃ§Ä±klarÄ±nÄ± ortaya Ã§Ä±karmÄ±ÅŸtÄ±r.
+Model Context Protocol (MCP), AI alanında önemli bir açık standart olarak ortaya çıkmış ve büyük dil modelleri (LLM'ler) ile harici araçlar veya veri kaynakları arasında kesintisiz çift yönlü iletişimi kolaylaştırmıştır. AI ekosistemlerindeki parçalanmayı gidermek için tasarlanan MCP, tak ve çalıştır entegrasyonlarını mümkün kılarak AI ajanlarının gerçek zamanlı verilere erişmesine, eylemleri gerçekleştirmesine ve özel kodlama olmadan çeşitli sistemlerle etkileşime girmesine olanak tanır. Genellikle AI için TCP/IP'ye benzetilen bu protokol, masaüstü ortamlarındaki uygulamaları (ör. Claude Desktop, Cursor), blok zinciri pazarlarını ve kurumsal yığınları destekleyerek geliştirme karmaşıklığını azaltır ve modüler AI iş akışlarının önünü açar. Ancak, hızlı benimsenmesi önemli güvenlik sorunlarını gündeme getirmiştir. Geçtiğimiz yıl yapılan tartışmalar, umut verici düzeltmeler, güncellemeler ve topluluk odaklı analizlerin yanı sıra, erken web geliştirme tuzaklarını anımsatan güvenlik açıklarını ortaya çıkarmıştır.
 ### Evrim ve Teknik Temeller
-MCP'nin temel mimarisi Ã¼Ã§ katman etrafÄ±nda dÃ¶ner: model (iÅŸlemlerin ve verilerin standart temsilleri), baÄŸlam (aÄŸ parametreleri gibi Ã§evresel ayrÄ±ntÄ±lar) ve protokol (eylemleri oluÅŸturma ve gÃ¶nderme mantÄ±ÄŸÄ±). Bu modÃ¼lerlik, OpenAI, Anthropic ve Google gibi saÄŸlayÄ±cÄ±larÄ±n LLM'leri arasÄ±nda birlikte Ã§alÄ±ÅŸabilirliÄŸi destekler. 2025-06-18 gÃ¼ncellemesi gibi son spesifikasyonlar, kurumsal kullanÄ±m iÃ§in geliÅŸtirilmiÅŸ yetkilendirme, elde etme mekanizmalarÄ± ve kaynak baÄŸlantÄ±larÄ± gibi iyileÅŸtirmeler getirerek gÃ¼venli, Ã¶lÃ§eklenebilir AI sistemleri oluÅŸturmayÄ± kolaylaÅŸtÄ±rmÄ±ÅŸtÄ±r. Teknik tartÄ±ÅŸmalar, MCP'nin yerel bir masaÃ¼stÃ¼ protokolÃ¼ (kamu trafiÄŸi iÃ§in SSE ile stdio Ã¼zerinde Ã§alÄ±ÅŸan) olarak ortaya Ã§Ä±kÄ±ÅŸÄ±nÄ± vurgulamaktadÄ±r. Bu, kimlik doÄŸrulama engellerini (baÅŸlÄ±klar veya Ã§erezler iÃ§in yerel destek eksikliÄŸi) ve bunlarÄ± gidermek iÃ§in AI API aÄŸ geÃ§itlerinin yÃ¼kseliÅŸini aÃ§Ä±klamaktadÄ±r. Entegrasyonlar, blok zincirine (Ã¶r. zincir Ã¼zerinde geliÅŸtirme iÃ§in Rootstock MCP Sunucusu, iÅŸlem oluÅŸturma iÃ§in Cardano) ve geliÅŸtirme araÃ§larÄ±na (Ã¶r. tarayÄ±cÄ± hata ayÄ±klama iÃ§in Chrome DevTools, AI'nÄ±n DOM'u incelemesine, UI testleri Ã§alÄ±ÅŸtÄ±rmasÄ±na ve ekran gÃ¶rÃ¼ntÃ¼leri ile dÃ¼zeltmeleri doÄŸrulamasÄ±na olanak tanÄ±r) kadar uzanmaktadÄ±r. Kurumsal baÄŸlamlarda, Spring AI ve MuleSoft MCP gibi Ã§erÃ§eveler HTTP, zamanlama ve hata toleransÄ± iÃ§in bildirimsel API'leri desteklerken, Amazon Bedrock AgentCore dakikalar iÃ§inde Ã¼retime hazÄ±r AI ajanlarÄ± saÄŸlar.
-### GÃ¼venlik AÃ§Ä±klarÄ± ve GÃ¼venlik KusurlarÄ±
-GÃ¼venlik tartÄ±ÅŸmalarÄ± MCP ile ilgili iÃ§eriÄŸi domine ederken, araÃ§ zehirlenmesi kritik bir tehdit olarak ortaya Ã§Ä±kmaktadÄ±r. Bu saldÄ±rÄ±larda, kÃ¶tÃ¼ niyetli sunucular araÃ§ aÃ§Ä±klamalarÄ±na zararlÄ± talimatlar yerleÅŸtirir ve AI asistanlarÄ± bunlarÄ± komut istemlerine dahil eder, bÃ¶ylece kullanÄ±cÄ±lar gÃ¶rÃ¼nÃ¼ÅŸte zararsÄ±z talepleri onaylarken veri sÄ±zÄ±ntÄ±larÄ± (Ã¶r. SSH anahtarlarÄ±, API anahtarlarÄ±) gibi yetkisiz eylemler gerÃ§ekleÅŸir. Sistematik bir Ã§alÄ±ÅŸma, kÃ¶tÃ¼ niyetli geliÅŸtiriciler, kullanÄ±cÄ±lar veya dÄ±ÅŸ saldÄ±rganlarÄ±n dahil olduÄŸu, oluÅŸturulmasÄ±ndan bakÄ±mÄ±na kadar MCP yaÅŸam dÃ¶ngÃ¼sÃ¼ boyunca 16 tehdit senaryosu belirlemiÅŸtir. AÃ§Ä±ÄŸa Ã§Ä±kan sunucular baÅŸka bir risk oluÅŸturmaktadÄ±r: Trend Micro, kimlik doÄŸrulama veya ÅŸifreleme olmadan 492 Ã§evrimiÃ§i Ã¶rnek bildirmiÅŸtir. Bu Ã¶rnekler, doÄŸal dil sorgularÄ± yoluyla bulut kaynaklarÄ± gibi hassas verilere doÄŸrudan okuma eriÅŸimi saÄŸlamaktadÄ±r. Komut istemine enjeksiyon, komut enjeksiyonu ve eksik kimlik doÄŸrulama â€” 25 en Ã¶nemli gÃ¼venlik aÃ§Ä±ÄŸÄ±ndan 18'inde â€œkolayâ€ olarak deÄŸerlendirilen kusurlar â€” yÄ±llar Ã¶nce web geliÅŸtirmede Ã§Ã¶zÃ¼len sorunlarÄ± yansÄ±tmaktadÄ±r, ancak cÃ¶mert izinlere sahip AI ajanlarÄ±nda hala devam etmektedir. GerÃ§ek dÃ¼nyadaki istismarlar arasÄ±nda, saldÄ±rganlara e-postalarÄ± gizli kopya olarak gÃ¶nderen ve kaldÄ±rÄ±lmadan Ã¶nce 1.600 kez indirilen sahte bir npm paketi (â€œpostmark-mcpâ€) ve uzaktan kod yÃ¼rÃ¼tmeyi mÃ¼mkÃ¼n kÄ±lan bir Figma MCP kusuru bulunmaktadÄ±r. Analizler, eklenti yÄ±ÄŸÄ±nlarÄ±nda %92 istismar olasÄ±lÄ±ÄŸÄ± olduÄŸu konusunda uyarÄ±da bulunarak, kÃ¼Ã§Ã¼k zayÄ±flÄ±klarÄ± bÃ¼yÃ¼k Ã¶lÃ§ekli ihlallere dÃ¶nÃ¼ÅŸtÃ¼rmektedir. HÄ±zlÄ± enjeksiyon, MCP'ye Ã¶zgÃ¼ deÄŸildir, ancak araÃ§larÄ±n gÃ¼venilmeyen girdilere maruz kalmasÄ±ndan kaynaklanÄ±r ve ajanlar arasÄ± (A2A) etkileÅŸimlerde riskleri artÄ±rÄ±r.
-| GÃ¼venlik AÃ§Ä±ÄŸÄ± TÃ¼rÃ¼ | AÃ§Ä±klama | SÃ¶mÃ¼rÃ¼ KolaylÄ±ÄŸÄ± | Etki | TartÄ±ÅŸmalardan Ã–rnekler |
+MCP'nin temel mimarisi üç katman etrafında döner: model (işlemlerin ve verilerin standart temsilleri), bağlam (ağ parametreleri gibi çevresel ayrıntılar) ve protokol (eylemleri oluşturma ve gönderme mantığı). Bu modülerlik, OpenAI, Anthropic ve Google gibi sağlayıcıların LLM'leri arasında birlikte çalışabilirliği destekler. 2025-06-18 güncellemesi gibi son spesifikasyonlar, kurumsal kullanım için geliştirilmiş yetkilendirme, elde etme mekanizmaları ve kaynak bağlantıları gibi iyileştirmeler getirerek güvenli, ölçeklenebilir AI sistemleri oluşturmayı kolaylaştırmıştır. Teknik tartışmalar, MCP'nin yerel bir masaüstü protokolü (kamu trafiği için SSE ile stdio üzerinde çalışan) olarak ortaya çıkışını vurgulamaktadır. Bu, kimlik doğrulama engellerini (başlıklar veya çerezler için yerel destek eksikliği) ve bunları gidermek için AI API ağ geçitlerinin yükselişini açıklamaktadır. Entegrasyonlar, blok zincirine (ör. zincir üzerinde geliştirme için Rootstock MCP Sunucusu, işlem oluşturma için Cardano) ve geliştirme araçlarına (ör. tarayıcı hata ayıklama için Chrome DevTools, AI'nın DOM'u incelemesine, UI testleri çalıştırmasına ve ekran görüntüleri ile düzeltmeleri doğrulamasına olanak tanır) kadar uzanmaktadır. Kurumsal bağlamlarda, Spring AI ve MuleSoft MCP gibi çerçeveler HTTP, zamanlama ve hata toleransı için bildirimsel API'leri desteklerken, Amazon Bedrock AgentCore dakikalar içinde üretime hazır AI ajanları sağlar.
+### Güvenlik Açıkları ve Güvenlik Kusurları
+Güvenlik tartışmaları MCP ile ilgili içeriği domine ederken, araç zehirlenmesi kritik bir tehdit olarak ortaya çıkmaktadır. Bu saldırılarda, kötü niyetli sunucular araç açıklamalarına zararlı talimatlar yerleştirir ve AI asistanları bunları komut istemlerine dahil eder, böylece kullanıcılar görünüşte zararsız talepleri onaylarken veri sızıntıları (ör. SSH anahtarları, API anahtarları) gibi yetkisiz eylemler gerçekleşir. Sistematik bir çalışma, kötü niyetli geliştiriciler, kullanıcılar veya dış saldırganların dahil olduğu, oluşturulmasından bakımına kadar MCP yaşam döngüsü boyunca 16 tehdit senaryosu belirlemiştir. Açığa çıkan sunucular başka bir risk oluşturmaktadır: Trend Micro, kimlik doğrulama veya şifreleme olmadan 492 çevrimiçi örnek bildirmiştir. Bu örnekler, doğal dil sorguları yoluyla bulut kaynakları gibi hassas verilere doğrudan okuma erişimi sağlamaktadır. Komut istemine enjeksiyon, komut enjeksiyonu ve eksik kimlik doğrulama — 25 en önemli güvenlik açığından 18'inde “kolay” olarak değerlendirilen kusurlar — yıllar önce web geliştirmede çözülen sorunları yansıtmaktadır, ancak cömert izinlere sahip AI ajanlarında hala devam etmektedir. Gerçek dünyadaki istismarlar arasında, saldırganlara e-postaları gizli kopya olarak gönderen ve kaldırılmadan önce 1.600 kez indirilen sahte bir npm paketi (“postmark-mcp”) ve uzaktan kod yürütmeyi mümkün kılan bir Figma MCP kusuru bulunmaktadır. Analizler, eklenti yığınlarında %92 istismar olasılığı olduğu konusunda uyarıda bulunarak, küçük zayıflıkları büyük ölçekli ihlallere dönüştürmektedir. Hızlı enjeksiyon, MCP'ye özgü değildir, ancak araçların güvenilmeyen girdilere maruz kalmasından kaynaklanır ve ajanlar arası (A2A) etkileşimlerde riskleri artırır.
+| Güvenlik Açığı Türü | Açıklama | Sömürü Kolaylığı | Etki | Tartışmalardan Örnekler |
 |--------------------|------------ -|--------------|--------|---------------------------|
-| AraÃ§ Zehirlenmesi | AraÃ§ aÃ§Ä±klamalarÄ±nda gizlenmiÅŸ kÃ¶tÃ¼ amaÃ§lÄ± talimatlar | Kolay | Veri sÄ±zdÄ±rma, yetkisiz eylemler | MCP sunucularÄ± Ã¼zerinden dÃ¼ÅŸmanca saldÄ±rÄ±lar; SSH/API anahtarlarÄ±nÄ±n sÄ±zdÄ±rÄ±lmasÄ± |
-| AÃ§Ä±ÄŸa Ã‡Ä±kmÄ±ÅŸ Sunucular | Kimlik doÄŸrulamasÄ± yapÄ±lmamÄ±ÅŸ Ã§evrimiÃ§i Ã¶rnekler | Ã–nemsiz | Hassas verilere arka kapÄ± | 492 sunucu bulundu; %90'Ä± doÄŸal dil eriÅŸimine izin veriyor |
-| Komut/Emir Enjeksiyonu | GiriÅŸ doÄŸrulamasÄ±nÄ± atlama | Kolay | Sistem gÃ¼venliÄŸinin ihlali | Ä°lk 25 rapor: 18/25 istismar edilebilir; yamalanmamÄ±ÅŸ PHP ile paralellikler |
-| Eksik Kimlik DoÄŸrulama | BaÅŸlÄ±k/Ã§erez desteÄŸi yok | Orta | Yetkisiz eriÅŸim | Uzaktan kurulumlar savunmasÄ±z; rug pull/Ã§apraz kaynak sorunlarÄ±na yol aÃ§ar |
-| Eklenti KÃ¶tÃ¼ye KullanÄ±mÄ± | YÄ±ÄŸÄ±nlarda tehlikeye atÄ±lmÄ±ÅŸ eklentiler | YÃ¼ksek (%92 olasÄ±lÄ±k) | Kurumsal Ã§apta istismarlar | E-postalarÄ± Ã§alan sahte npm paketleri; Figma uzaktan kod yÃ¼rÃ¼tme |
-### Yamalar, DÃ¼zeltmeler ve Azaltma Stratejileri
-Tehditlere karÅŸÄ± alÄ±nan Ã¶nlemler arasÄ±nda Figma'nÄ±n gÃ¼venlik aÃ§Ä±ÄŸÄ± dÃ¼zeltmesi gibi belirli kusurlar iÃ§in yamalar ve SlowMist gibi firmalarÄ±n Ã§oklu MCP ve kripto para senaryolarÄ±nÄ± kapsayan kapsamlÄ± kontrol listeleri bulunmaktadÄ±r. GÃ¼venlik tarayÄ±cÄ±larÄ±, Claude ve Cursor gibi araÃ§larÄ± destekleyerek araÃ§ zehirlenmesi, rug pull (hash yoluyla) ve Ã§apraz kaynak ihlallerini tespit eder. Vulnerablemcp[.]info gibi kaynaklar, daha iyi savunma iÃ§in saldÄ±rÄ± vektÃ¶rlerini ayrÄ±ntÄ±lÄ± olarak aÃ§Ä±klar. En iyi uygulamalar, kÃ¶tÃ¼ amaÃ§lÄ± yazÄ±lÄ±m gibi sunucularÄ± incelemeyi, kapsamlarÄ± sÄ±nÄ±rlandÄ±rmayÄ±, gÃ¼venilir saÄŸlayÄ±cÄ±larÄ± kullanmayÄ± ve gÃ¼ncellemelerden sonra MCP'leri yeniden onaylamayÄ± vurgular. KQL sorgularÄ±, Microsoft Sentinel gibi ortamlarda maruz kalan sunucularÄ± bulmaya yardÄ±mcÄ± olur. Daha geniÅŸ savunma Ã¶nlemleri arasÄ±nda AI destekli gÃ¼venlik Ã¶nlemleri, aÅŸama Ã¶zel korumalar ve sohbetlerdeki UI Ã¶ÄŸeleri iÃ§in MCP-UI gibi standartlar bulunur.
-### GÃ¼ncel GeliÅŸmeler ve Entegrasyonlar
-MCP'nin bÃ¼yÃ¼mesi, ChatGPT GeliÅŸtirici Modu, VS Code (GitHub MCP kayÄ±t defteri ile v1.105) ve n8n iÅŸ akÄ±ÅŸlarÄ± iÃ§in TypingMind gibi platformlarda tam desteÄŸi iÃ§erir. DeMCP_AI'nin AI hesaplama iÃ§in Web3 pazarÄ± ve TaironAI'nin Oracle KatmanÄ± gibi blok zinciri entegrasyonlarÄ±, zincir Ã¼zerinde gÃ¼venlik ve modÃ¼ler araÃ§lar iÃ§in MCP'yi kullanÄ±r. Otto MCP ve Briq'in Otonom Ä°ÅŸ GÃ¼cÃ¼ Platformu gibi kurumsal araÃ§lar, MCP'yi AI iÃ§in â€œaÃ§Ä±k anâ€ olarak konumlandÄ±rarak ajanlarÄ±n Ã¶zerkliÄŸini saÄŸlar. Helidon 4.3.0 ve Hugging Face MCP Sunucusu gibi aÃ§Ä±k kaynak Ã§abalarÄ±, yÃ¶netim API paritesi ve UI desteÄŸi gibi Ã¶zellikler ekler. KatalizÃ¶r Ã¶nerileri, MCP aracÄ±lÄ±ÄŸÄ±yla Cardano iÅŸlemlerini AI ile desteklemeyi amaÃ§lamaktadÄ±r.
-### Topluluk TartÄ±ÅŸmalarÄ± ve Analizleri
-Analizler dengeli gÃ¶rÃ¼ÅŸleri vurgulamaktadÄ±r: MCP verimliliÄŸi artÄ±rÄ±r (Ã¶rneÄŸin, ajanlarda %97,3 araÃ§ Ã§aÄŸÄ±rma gÃ¼venilirliÄŸi) ancak â€œpahalÄ± derslerâ€den kaÃ§Ä±nmak iÃ§in disiplin gerektirir. Reddit ve Zenn.dev gibi platformlarda yapÄ±lan tartÄ±ÅŸmalar Japon baÄŸlamÄ±ndaki riskleri ele alÄ±rken, makaleler yÃ¼kselen gÃ¼venlik manzaralarÄ±nÄ± incelemektedir. Topluluk, Jenova.ai'nin MCP'ye Ã¶zel ajanÄ± ve iÃ§erik yÃ¶netimi iÃ§in Umbraco CMS MCP Beta gibi yeniliklere dikkat Ã§ekiyor. TartÄ±ÅŸmalar arasÄ±nda MCP'nin OpenAPI ÅŸemalarÄ±yla uyumsuzluÄŸu ve Story Protocol gibi entegrasyonlar yoluyla AI'nÄ±n sahip olduÄŸu IP potansiyeli yer alÄ±yor.
-### Resmi Duyurular ve Gelecekteki YÃ¶nelimler
-Anthropic, OpenAI ve Google gibi kuruluÅŸlarÄ±n duyurularÄ±, MCP'nin AI arama alÄ±ntÄ±larÄ± ve geliÅŸtirme araÃ§larÄ±ndaki rolÃ¼nÃ¼ vurgulamaktadÄ±r. Devoxx gibi etkinliklerde MCP Java SDK ile ilgili uygulamalÄ± oturumlar dÃ¼zenlenmektedir. Gelecekteki beklentiler, AI API aÄŸ geÃ§itleri, ajanlar arasÄ± iletiÅŸim ve MCP-UI gibi standartlarÄ±n kullanÄ±labilirliÄŸi artÄ±rÄ±rken eksiklikleri gidermesini Ã¶ngÃ¶rmektedir. Genel olarak, MCP'nin gidiÅŸatÄ± yenilikÃ§ilik ile gÃ¼venlik gereklilikleri arasÄ±nda bir denge kurarak, onu AI'nÄ±n bir sonraki aÅŸamasÄ± iÃ§in vazgeÃ§ilmez bir unsur haline getirmektedir.
-**Ã–nemli AlÄ±ntÄ±lar:**
-- [Graham_dePenros, AraÃ§ Zehirleme SaldÄ±rÄ±larÄ± hakkÄ±nda](https://x.com/Graham_dePenros/status/1976216281033408741)
-- [lbeurerkellner, Kritik Kusur KeÅŸfi](https://x.com/lbeurerkellner/status/1907075048118059101)
-- [jfrog, SÃ¶mÃ¼rÃ¼ OlasÄ±lÄ±ÄŸÄ± hakkÄ±nda](https://x.com/jfrog/status/1976719975881617553)
-- [SlowMist_Team, GÃ¼venlik Kontrol Listesi hakkÄ±nda](https://x.com/SlowMist_Team/status/1911678320531607903)
-- [rryssf_ En Ã–nemli 25 GÃ¼venlik AÃ§Ä±ÄŸÄ±](https://x.com/rryssf_/status/1970524674439422444)
-- [LouisColumbus, Eklenti Riskleri hakkÄ±nda](https://x.com/LouisColumbus/status/1976393986156941725)
-- [rez0__, GÃ¼venlik AÃ§Ä±ÄŸÄ± KaynaÄŸÄ± hakkÄ±nda](https://x.com/rez0__/status/1922381770588053669)
-- [liran_tal, GÃ¼venlik OrtamÄ± hakkÄ±nda](https://x.com/liran_tal/status/1976362229294387584)
-- [jiqizhixin, Sistematik Ã‡alÄ±ÅŸma GÃ¼ncellemesi](https://x.com/jiqizhixin/status/1976109107804270655)
-- [0x534c, AÃ§Ä±ÄŸa Ã‡Ä±kmÄ±ÅŸ Sunucular hakkÄ±nda](https://x.com/0x534c/status/1956999290863370481)
-- [simonw, HÄ±zlÄ± Enjeksiyon SorunlarÄ± hakkÄ±nda](https://x.com/simonw/status/1909955640107430226)
-- [Chikor_Zi, Åema SÄ±nÄ±rlamalarÄ± hakkÄ±nda](https://x.com/Chikor_Zi/status/1939362725630562592)
-- [TheHackersNews, Arka KapÄ± OlayÄ± hakkÄ±nda](https://x.com/TheHackersNews/status/1972581724992528746)
-- [dsp_, Yeni Spesifikasyon hakkÄ±nda](https://x.com/dsp_/status/1935740870680363328)
-- [kakarot_ai, KorkunÃ§ GÃ¼venlik AÃ§Ä±klarÄ± hakkÄ±nda](https://x.com/kakarot_ai/status/1975599529681690820)
-- [lbeurerkellner, GÃ¼venlik TarayÄ±cÄ±sÄ± hakkÄ±nda](https://x.com/lbeurerkellner/status/1910379084758343827)
-- [MCP_Community, ÃœrÃ¼n Ã–zeti hakkÄ±nda](https://x.com/MCP_Community/status/1951369789685084254)
-- [nutrientdocs, MCP SunucularÄ±nÄ±n Tedavisi hakkÄ±nda](https://x.com/nutrientdocs/status/1976707785548030101)
-- [GoogleCloudTech, Gemini CLI Entegrasyonu hakkÄ±nda](https://x.com/GoogleCloudTech/status/1973493121250902040)
-- [rootstock_io, Rootstock MCP Sunucusu hakkÄ±nda](https://x.com/rootstock_io/status/1975656743799902686)
-- [nowitnesslabs, Catalyst Ã–nerisi hakkÄ±nda](https://x.com/nowitnesslabs/status/1972563255479459990)
-- [BriqHQ, OTTO MCP Duyurusu hakkÄ±nda](https://x.com/BriqHQ/status/1972723699016183888)
-- [evalstate, HF MCP Sunucusu hakkÄ±nda](https://x.com/evalstate/status/1975188323124519293)
-- [100xDarren, TAIRO GÃ¼ncellemesi hakkÄ±nda](https://x.com/100xDarren/status/1973515775593029886)
-- [KrekhovetsRZ, Story Protocol Entegrasyonu hakkÄ±nda](https://x.com/KrekhovetsRZ/status/1975278135961702515)
-- [helidon_project, Helidon 4.3.0 SÃ¼rÃ¼mÃ¼ hakkÄ±nda](https://x.com/helidon_project/status/1973727994742239401)
-- [ChromiumDev, DevTools MCP hakkÄ±nda](https://x.com/ChromiumDev/status/1976422660880875687)
-- [christzolov, Devoxx Talk hakkÄ±nda](https://x.com/christzolov/status/1976209066423947619)
+| Araç Zehirlenmesi | Araç açıklamalarında gizlenmiş kötü amaçlı talimatlar | Kolay | Veri sızdırma, yetkisiz eylemler | MCP sunucuları üzerinden düşmanca saldırılar; SSH/API anahtarlarının sızdırılması |
+| Açığa Çıkmış Sunucular | Kimlik doğrulaması yapılmamış çevrimiçi örnekler | Önemsiz | Hassas verilere arka kapı | 492 sunucu bulundu; %90'ı doğal dil erişimine izin veriyor |
+| Komut/Emir Enjeksiyonu | Giriş doğrulamasını atlama | Kolay | Sistem güvenliğinin ihlali | İlk 25 rapor: 18/25 istismar edilebilir; yamalanmamış PHP ile paralellikler |
+| Eksik Kimlik Doğrulama | Başlık/çerez desteği yok | Orta | Yetkisiz erişim | Uzaktan kurulumlar savunmasız; rug pull/çapraz kaynak sorunlarına yol açar |
+| Eklenti Kötüye Kullanımı | Yığınlarda tehlikeye atılmış eklentiler | Yüksek (%92 olasılık) | Kurumsal çapta istismarlar | E-postaları çalan sahte npm paketleri; Figma uzaktan kod yürütme |
+### Yamalar, Düzeltmeler ve Azaltma Stratejileri
+Tehditlere karşı alınan önlemler arasında Figma'nın güvenlik açığı düzeltmesi gibi belirli kusurlar için yamalar ve SlowMist gibi firmaların çoklu MCP ve kripto para senaryolarını kapsayan kapsamlı kontrol listeleri bulunmaktadır. Güvenlik tarayıcıları, Claude ve Cursor gibi araçları destekleyerek araç zehirlenmesi, rug pull (hash yoluyla) ve çapraz kaynak ihlallerini tespit eder. Vulnerablemcp[.]info gibi kaynaklar, daha iyi savunma için saldırı vektörlerini ayrıntılı olarak açıklar. En iyi uygulamalar, kötü amaçlı yazılım gibi sunucuları incelemeyi, kapsamları sınırlandırmayı, güvenilir sağlayıcıları kullanmayı ve güncellemelerden sonra MCP'leri yeniden onaylamayı vurgular. KQL sorguları, Microsoft Sentinel gibi ortamlarda maruz kalan sunucuları bulmaya yardımcı olur. Daha geniş savunma önlemleri arasında AI destekli güvenlik önlemleri, aşama özel korumalar ve sohbetlerdeki UI öğeleri için MCP-UI gibi standartlar bulunur.
+### Güncel Gelişmeler ve Entegrasyonlar
+MCP'nin büyümesi, ChatGPT Geliştirici Modu, VS Code (GitHub MCP kayıt defteri ile v1.105) ve n8n iş akışları için TypingMind gibi platformlarda tam desteği içerir. DeMCP_AI'nin AI hesaplama için Web3 pazarı ve TaironAI'nin Oracle Katmanı gibi blok zinciri entegrasyonları, zincir üzerinde güvenlik ve modüler araçlar için MCP'yi kullanır. Otto MCP ve Briq'in Otonom İş Gücü Platformu gibi kurumsal araçlar, MCP'yi AI için “açık an” olarak konumlandırarak ajanların özerkliğini sağlar. Helidon 4.3.0 ve Hugging Face MCP Sunucusu gibi açık kaynak çabaları, yönetim API paritesi ve UI desteği gibi özellikler ekler. Katalizör önerileri, MCP aracılığıyla Cardano işlemlerini AI ile desteklemeyi amaçlamaktadır.
+### Topluluk Tartışmaları ve Analizleri
+Analizler dengeli görüşleri vurgulamaktadır: MCP verimliliği artırır (örneğin, ajanlarda %97,3 araç çağırma güvenilirliği) ancak “pahalı dersler”den kaçınmak için disiplin gerektirir. Reddit ve Zenn.dev gibi platformlarda yapılan tartışmalar Japon bağlamındaki riskleri ele alırken, makaleler yükselen güvenlik manzaralarını incelemektedir. Topluluk, Jenova.ai'nin MCP'ye özel ajanı ve içerik yönetimi için Umbraco CMS MCP Beta gibi yeniliklere dikkat çekiyor. Tartışmalar arasında MCP'nin OpenAPI şemalarıyla uyumsuzluğu ve Story Protocol gibi entegrasyonlar yoluyla AI'nın sahip olduğu IP potansiyeli yer alıyor.
+### Resmi Duyurular ve Gelecekteki Yönelimler
+Anthropic, OpenAI ve Google gibi kuruluşların duyuruları, MCP'nin AI arama alıntıları ve geliştirme araçlarındaki rolünü vurgulamaktadır. Devoxx gibi etkinliklerde MCP Java SDK ile ilgili uygulamalı oturumlar düzenlenmektedir. Gelecekteki beklentiler, AI API ağ geçitleri, ajanlar arası iletişim ve MCP-UI gibi standartların kullanılabilirliği artırırken eksiklikleri gidermesini öngörmektedir. Genel olarak, MCP'nin gidişatı yenilikçilik ile güvenlik gereklilikleri arasında bir denge kurarak, onu AI'nın bir sonraki aşaması için vazgeçilmez bir unsur haline getirmektedir.
+**Önemli Alıntılar:**
+- [Graham_dePenros, Araç Zehirleme Saldırıları hakkında](https://x.com/Graham_dePenros/status/1976216281033408741)
+- [lbeurerkellner, Kritik Kusur Keşfi](https://x.com/lbeurerkellner/status/1907075048118059101)
+- [jfrog, Sömürü Olasılığı hakkında](https://x.com/jfrog/status/1976719975881617553)
+- [SlowMist_Team, Güvenlik Kontrol Listesi hakkında](https://x.com/SlowMist_Team/status/1911678320531607903)
+- [rryssf_ En Önemli 25 Güvenlik Açığı](https://x.com/rryssf_/status/1970524674439422444)
+- [LouisColumbus, Eklenti Riskleri hakkında](https://x.com/LouisColumbus/status/1976393986156941725)
+- [rez0__, Güvenlik Açığı Kaynağı hakkında](https://x.com/rez0__/status/1922381770588053669)
+- [liran_tal, Güvenlik Ortamı hakkında](https://x.com/liran_tal/status/1976362229294387584)
+- [jiqizhixin, Sistematik Çalışma Güncellemesi](https://x.com/jiqizhixin/status/1976109107804270655)
+- [0x534c, Açığa Çıkmış Sunucular hakkında](https://x.com/0x534c/status/1956999290863370481)
+- [simonw, Hızlı Enjeksiyon Sorunları hakkında](https://x.com/simonw/status/1909955640107430226)
+- [Chikor_Zi, Şema Sınırlamaları hakkında](https://x.com/Chikor_Zi/status/1939362725630562592)
+- [TheHackersNews, Arka Kapı Olayı hakkında](https://x.com/TheHackersNews/status/1972581724992528746)
+- [dsp_, Yeni Spesifikasyon hakkında](https://x.com/dsp_/status/1935740870680363328)
+- [kakarot_ai, Korkunç Güvenlik Açıkları hakkında](https://x.com/kakarot_ai/status/1975599529681690820)
+- [lbeurerkellner, Güvenlik Tarayıcısı hakkında](https://x.com/lbeurerkellner/status/1910379084758343827)
+- [MCP_Community, Ürün Özeti hakkında](https://x.com/MCP_Community/status/1951369789685084254)
+- [nutrientdocs, MCP Sunucularının Tedavisi hakkında](https://x.com/nutrientdocs/status/1976707785548030101)
+- [GoogleCloudTech, Gemini CLI Entegrasyonu hakkında](https://x.com/GoogleCloudTech/status/1973493121250902040)
+- [rootstock_io, Rootstock MCP Sunucusu hakkında](https://x.com/rootstock_io/status/1975656743799902686)
+- [nowitnesslabs, Catalyst Önerisi hakkında](https://x.com/nowitnesslabs/status/1972563255479459990)
+- [BriqHQ, OTTO MCP Duyurusu hakkında](https://x.com/BriqHQ/status/1972723699016183888)
+- [evalstate, HF MCP Sunucusu hakkında](https://x.com/evalstate/status/1975188323124519293)
+- [100xDarren, TAIRO Güncellemesi hakkında](https://x.com/100xDarren/status/1973515775593029886)
+- [KrekhovetsRZ, Story Protocol Entegrasyonu hakkında](https://x.com/KrekhovetsRZ/status/1975278135961702515)
+- [helidon_project, Helidon 4.3.0 Sürümü hakkında](https://x.com/helidon_project/status/1973727994742239401)
+- [ChromiumDev, DevTools MCP hakkında](https://x.com/ChromiumDev/status/1976422660880875687)
+- [christzolov, Devoxx Talk hakkında](https://x.com/christzolov/status/1976209066423947619)
 - [Bedrock AgentCore'da awsdevelopers](https://x.com/awsdevelopers/status/1974900254349603273)
-- [lilyraynyc, AI Search Citations hakkÄ±nda](https://x.com/lilyraynyc/status/1973044734206628353)
-- [HexawareGlobal, MuleSoft DesteÄŸi hakkÄ±nda](https://x.com/HexawareGlobal/status/1975546653667963028)
-- [umbraco, CMS MCP Beta hakkÄ±nda](https://x.com/umbraco/status/1975463678733414582)
-- [VS Code SÃ¼rÃ¼mÃ¼nde code](https://x.com/code/status/1976332459886182627)
+- [lilyraynyc, AI Search Citations hakkında](https://x.com/lilyraynyc/status/1973044734206628353)
+- [HexawareGlobal, MuleSoft Desteği hakkında](https://x.com/HexawareGlobal/status/1975546653667963028)
+- [umbraco, CMS MCP Beta hakkında](https://x.com/umbraco/status/1975463678733414582)
+- [VS Code Sürümünde code](https://x.com/code/status/1976332459886182627)
 - [n8n Entegrasyonunda TypingMindApp](https://x.com/TypingMindApp/status/1973767427872772513)
 
-### AI AjanlarÄ± GÃ¼venlik Protokolleri
+### AI Ajanları Güvenlik Protokolleri
 
-AraÅŸtÄ±rmalar, AI ajanlarÄ±nÄ±n (otonom gÃ¶revleri yerine getiren AI sistemleri) gÃ¼venlik risklerinin yÃ¼ksek olduÄŸunu gÃ¶steriyor; prompt enjeksiyonu, veri sÄ±zÄ±ntÄ±sÄ± ve kÃ¶tÃ¼ye kullanÄ±m gibi tehditler yaygÄ±n. Ancak, katmanlÄ± savunmalar ve en iyi uygulamalarla bu riskler yÃ¶netilebilir.
+Araştırmalar, AI ajanlarının (otonom görevleri yerine getiren AI sistemleri) güvenlik risklerinin yüksek olduğunu gösteriyor; prompt enjeksiyonu, veri sızıntısı ve kötüye kullanım gibi tehditler yaygın. Ancak, katmanlı savunmalar ve en iyi uygulamalarla bu riskler yönetilebilir.
 
-- **Temel Riskler**: AI ajanlarÄ±, LLM'lerin (bÃ¼yÃ¼k dil modelleri) aÃ§Ä±klÄ±klarÄ±ndan etkilenerek veri zehirlenmesi, jailbreak ve araÃ§ zehirlenmesi gibi saldÄ±rÄ±lara maruz kalÄ±r; bu, gizlilik ve bÃ¼tÃ¼nlÃ¼k ihlallerine yol aÃ§abilir.
-- **Ana Savunmalar**: En az yetki ilkesi, giriÅŸ/Ã§Ä±kÄ±ÅŸ doÄŸrulamasÄ± ve sandboxing gibi geleneksel yÃ¶ntemler, AI'ye Ã¶zgÃ¼ guard modelleri ve davranÄ±ÅŸ sertifikalarÄ± ile birleÅŸtirilerek etkili koruma saÄŸlar.
-- **Potansiyel TartÄ±ÅŸmalar**: BazÄ± uzmanlar, AI ajanlarÄ±nÄ±n tam Ã¶zerkliÄŸinin riskleri artÄ±rdÄ±ÄŸÄ±nÄ± savunurken, diÄŸerleri katÄ± protokollerle dengelenebileceÄŸini belirtiyor; ancak, standartlaÅŸma eksikliÄŸi genel bir endiÅŸe kaynaÄŸÄ±.
+- **Temel Riskler**: AI ajanları, LLM'lerin (büyük dil modelleri) açıklıklarından etkilenerek veri zehirlenmesi, jailbreak ve araç zehirlenmesi gibi saldırılara maruz kalır; bu, gizlilik ve bütünlük ihlallerine yol açabilir.
+- **Ana Savunmalar**: En az yetki ilkesi, giriş/çıkış doğrulaması ve sandboxing gibi geleneksel yöntemler, AI'ye özgü guard modelleri ve davranış sertifikaları ile birleştirilerek etkili koruma sağlar.
+- **Potansiyel Tartışmalar**: Bazı uzmanlar, AI ajanlarının tam özerkliğinin riskleri artırdığını savunurken, diğerleri katı protokollerle dengelenebileceğini belirtiyor; ancak, standartlaşma eksikliği genel bir endişe kaynağı.
 
-#### GiriÅŸ DoÄŸrulamasÄ± ve Sandboxing
-GiriÅŸlerin sÄ±kÄ± doÄŸrulanmasÄ± (Ã¶rneÄŸin, JSON formatÄ± ve regex filtreleri) ve ajanlarÄ±n izole ortamlarda (sandbox) Ã§alÄ±ÅŸtÄ±rÄ±lmasÄ±, prompt enjeksiyonu gibi saldÄ±rÄ±larÄ± Ã¶nler. Bu, ajanlarÄ±n yalnÄ±zca gerekli kaynaklara eriÅŸmesini saÄŸlar.
+#### Giriş Doğrulaması ve Sandboxing
+Girişlerin sıkı doğrulanması (örneğin, JSON formatı ve regex filtreleri) ve ajanların izole ortamlarda (sandbox) çalıştırılması, prompt enjeksiyonu gibi saldırıları önler. Bu, ajanların yalnızca gerekli kaynaklara erişmesini sağlar.
 
-#### Åifreleme ve Ä°zleme
-TÃ¼m verilerin uÃ§tan uca ÅŸifrelenmesi (TLS 1.3, AES-256) ve davranÄ±ÅŸ izlemesi (OpenTelemetry gibi araÃ§larla), anormallikleri erken tespit eder. Rate limiting, DoS saldÄ±rÄ±larÄ±nÄ± sÄ±nÄ±rlayarak ajanlarÄ±n kullanÄ±labilirliÄŸini korur.
+#### Şifreleme ve İzleme
+Tüm verilerin uçtan uca şifrelenmesi (TLS 1.3, AES-256) ve davranış izlemesi (OpenTelemetry gibi araçlarla), anormallikleri erken tespit eder. Rate limiting, DoS saldırılarını sınırlayarak ajanların kullanılabilirliğini korur.
 
-#### Protokol Spesifik YaklaÅŸÄ±mlar
-A2AS gibi Ã§erÃ§eveler, davranÄ±ÅŸ sertifikalarÄ± ve baÄŸlam bÃ¼tÃ¼nlÃ¼ÄŸÃ¼ ile ajan-ajan iletiÅŸimini gÃ¼vence altÄ±na alÄ±r. MCP (Model Context Protocol) iÃ§in araÃ§ zehirlenmesi tarayÄ±cÄ±larÄ± Ã¶nerilir.
+#### Protokol Spesifik Yaklaşımlar
+A2AS gibi çerçeveler, davranış sertifikaları ve bağlam bütünlüğü ile ajan-ajan iletişimini güvence altına alır. MCP (Model Context Protocol) için araç zehirlenmesi tarayıcıları önerilir.
 
 ---
 
-AI ajanlarÄ±, bÃ¼yÃ¼k dil modelleri (LLM'ler) Ã¼zerine kurulu otonom sistemler olarak, Ã§eÅŸitli gÃ¼venlik tehditleriyle karÅŸÄ± karÅŸÄ±ya kalÄ±r. Bu tehditler, geleneksel yazÄ±lÄ±m gÃ¼venlik sorunlarÄ±ndan farklÄ± olarak, ajanlarÄ±n karar alma ve eylem yÃ¼rÃ¼tme yeteneklerinden kaynaklanÄ±r. AraÅŸtÄ±rmalar, ajanlarÄ±n gizlilik, bÃ¼tÃ¼nlÃ¼k ve kullanÄ±labilirlik aÃ§Ä±sÄ±ndan risk taÅŸÄ±dÄ±ÄŸÄ±nÄ± vurgular; Ã¶rneÄŸin, prompt enjeksiyonu yoluyla zararlÄ± eylemler tetiklenebilir veya veri sÄ±zÄ±ntÄ±larÄ± meydana gelebilir. Bu kapsamlÄ± inceleme, son bir yÄ±ldaki web ve X (eski Twitter) kaynaklarÄ±ndan derlenen bilgileri temel alÄ±r, tehdit modellerini, saldÄ±rÄ± vektÃ¶rlerini ve savunma stratejilerini detaylandÄ±rÄ±r. Geleneksel ve AI'ye Ã¶zgÃ¼ yÃ¶ntemler bir araya getirilerek katmanlÄ± bir yaklaÅŸÄ±m Ã¶nerilir.
+AI ajanları, büyük dil modelleri (LLM'ler) üzerine kurulu otonom sistemler olarak, çeşitli güvenlik tehditleriyle karşı karşıya kalır. Bu tehditler, geleneksel yazılım güvenlik sorunlarından farklı olarak, ajanların karar alma ve eylem yürütme yeteneklerinden kaynaklanır. Araştırmalar, ajanların gizlilik, bütünlük ve kullanılabilirlik açısından risk taşıdığını vurgular; örneğin, prompt enjeksiyonu yoluyla zararlı eylemler tetiklenebilir veya veri sızıntıları meydana gelebilir. Bu kapsamlı inceleme, son bir yıldaki web ve X (eski Twitter) kaynaklarından derlenen bilgileri temel alır, tehdit modellerini, saldırı vektörlerini ve savunma stratejilerini detaylandırır. Geleneksel ve AI'ye özgü yöntemler bir araya getirilerek katmanlı bir yaklaşım önerilir.
 
-#### Tehdit Modelleri ve SaldÄ±rÄ± VektÃ¶rleri
-AI ajanlarÄ±nÄ±n tehdit modeli, metin tabanlÄ± giriÅŸ/Ã§Ä±kÄ±ÅŸa dayanÄ±r; gÃ¼venli bir sunucuda barÄ±ndÄ±rÄ±lÄ±rken, kullanÄ±cÄ± eriÅŸimi API ile sÄ±nÄ±rlÄ±dÄ±r. Ancak, LLM'lerin Ã¼rettiÄŸi eylemler, sistem aÃ§Ä±klÄ±klarÄ±nÄ± istismar edebilir. Ana vektÃ¶rler ÅŸÃ¶yle:
+#### Tehdit Modelleri ve Saldırı Vektörleri
+AI ajanlarının tehdit modeli, metin tabanlı giriş/çıkışa dayanır; güvenli bir sunucuda barındırılırken, kullanıcı erişimi API ile sınırlıdır. Ancak, LLM'lerin ürettiği eylemler, sistem açıklıklarını istismar edebilir. Ana vektörler şöyle:
 
-1. **Oturum YÃ¶netimi AÃ§Ä±klarÄ±**: Ã‡ok kullanÄ±cÄ±lÄ± ajanlarda oturum izolasyonu eksikliÄŸi, bilgi sÄ±zÄ±ntÄ±sÄ±na (gizlilik ihlali) veya yanlÄ±ÅŸ eylem atamasÄ±na (bÃ¼tÃ¼nlÃ¼k ihlali) yol aÃ§ar. Kaynak yoÄŸun sorgularla DoS saldÄ±rÄ±larÄ± mÃ¼mkÃ¼n olur.
-2. **Model Kirlenmesi ve Gizlilik SÄ±zÄ±ntÄ±larÄ±**: KullanÄ±cÄ± sohbet geÃ§miÅŸleriyle ince ayarlanmÄ±ÅŸ modeller, veri zehirlenmesine aÃ§Ä±ktÄ±r. Hassas veriler (SSN, hesap numaralarÄ±) LLM'lerde saklanarak Ã§Ä±karÄ±labilir; Ã¶rnek olarak Samsung'un ChatGPT yasaÄŸÄ± verilebilir.
-3. **Ajan ProgramÄ± AÃ§Ä±klarÄ±**:
-   - **SÄ±fÄ±r AtÄ±ÅŸ Eylemleri**: HalÃ¼sinasyonlar veya jailbreak'ler, istenmeyen komutlar Ã¼retir; araÃ§ belgelerine gÃ¶mÃ¼lÃ¼ prompt'lar veri sÄ±zÄ±ntÄ±sÄ±na neden olur.
-   - **BiliÅŸsel Planlama**: ReAct veya Tree-of-Thoughts gibi yÃ¶ntemler, her adÄ±mda yan etkiler yaratÄ±r; kaynak tÃ¼ketimiyle kullanÄ±labilirlik etkilenir.
-   Deneyler (BashAgent ile 95 gÃ¼venlik gÃ¶revi), kÄ±sÄ±tsÄ±z ortamlarda %96 gizlilik, %85.7 bÃ¼tÃ¼nlÃ¼k ve %62.9 kullanÄ±labilirlik saldÄ±rÄ±larÄ±nÄ±n baÅŸarÄ±lÄ± olduÄŸunu gÃ¶sterir.
+1. **Oturum Yönetimi Açıkları**: Çok kullanıcılı ajanlarda oturum izolasyonu eksikliği, bilgi sızıntısına (gizlilik ihlali) veya yanlış eylem atamasına (bütünlük ihlali) yol açar. Kaynak yoğun sorgularla DoS saldırıları mümkün olur.
+2. **Model Kirlenmesi ve Gizlilik Sızıntıları**: Kullanıcı sohbet geçmişleriyle ince ayarlanmış modeller, veri zehirlenmesine açıktır. Hassas veriler (SSN, hesap numaraları) LLM'lerde saklanarak çıkarılabilir; örnek olarak Samsung'un ChatGPT yasağı verilebilir.
+3. **Ajan Programı Açıkları**:
+   - **Sıfır Atış Eylemleri**: Halüsinasyonlar veya jailbreak'ler, istenmeyen komutlar üretir; araç belgelerine gömülü prompt'lar veri sızıntısına neden olur.
+   - **Bilişsel Planlama**: ReAct veya Tree-of-Thoughts gibi yöntemler, her adımda yan etkiler yaratır; kaynak tüketimiyle kullanılabilirlik etkilenir.
+   Deneyler (BashAgent ile 95 güvenlik görevi), kısıtsız ortamlarda %96 gizlilik, %85.7 bütünlük ve %62.9 kullanılabilirlik saldırılarının başarılı olduğunu gösterir.
 
-X tartÄ±ÅŸmalarÄ±nda, araÃ§ zehirlenmesi (tool poisoning) ve plan enjeksiyonu gibi yeni saldÄ±rÄ±lar Ã¶ne Ã§Ä±kar; Ã¶rneÄŸin, ajan hafÄ±zasÄ±na gizli talimatlar eklenerek kalÄ±cÄ± zarar verilebilir.
+X tartışmalarında, araç zehirlenmesi (tool poisoning) ve plan enjeksiyonu gibi yeni saldırılar öne çıkar; örneğin, ajan hafızasına gizli talimatlar eklenerek kalıcı zarar verilebilir.
 
-TÃ¼rkÃ§e kaynaklarda, MCP (Model Context Protocol) gibi protokollerde araÃ§ zehirlenmesi ve ajan-ajan (A2A) iletiÅŸim riskleri vurgulanÄ±r; kÃ¶tÃ¼ niyetli sunucular, gizli talimatlarla veri dÄ±ÅŸa aktarÄ±mÄ± saÄŸlar.
+Türkçe kaynaklarda, MCP (Model Context Protocol) gibi protokollerde araç zehirlenmesi ve ajan-ajan (A2A) iletişim riskleri vurgulanır; kötü niyetli sunucular, gizli talimatlarla veri dışa aktarımı sağlar.
 
 #### Savunma Stratejileri
-Savunmalar, bileÅŸen dÃ¼zeyinde odaklanÄ±r; izolasyon, ÅŸifreleme ve resmi modelleme ile uygulanÄ±r.
+Savunmalar, bileşen düzeyinde odaklanır; izolasyon, şifreleme ve resmi modelleme ile uygulanır.
 
-1. **Oturum YÃ¶netimi**: Benzersiz oturum kimlikleri ve KVDB ile tarihÃ§eyi izole edin; durum dÃ¶nÃ¼ÅŸtÃ¼rÃ¼cÃ¼ monadlar (state transformer monads) ile doÄŸrulanabilir hesaplamalar saÄŸlayÄ±n.
-2. **Model KorumasÄ±**:
-   - **Oturumsuz Modeller**: Ã–zel verileri filtreleyin; FPETS (Format-Preserving Encryption for Text Slicing) ile ÅŸifreleme, baÅŸarÄ± oranlarÄ±nÄ± %38-89 korur. FHE (Fully Homomorphic Encryption) hesaplamalara izin verir.
-   - **Oturum FarkÄ±ndalÄ±ÄŸÄ±**: Prompt tuning ile kullanÄ±cÄ±ya Ã¶zgÃ¼ parametreler ekleyin, temel LLM'yi dondurun.
-3. **Sandboxing**: Kaynak sÄ±nÄ±rlamalarÄ± ve Docker gibi izole ortamlar; kÄ±sÄ±tlÄ± BashAgent, tÃ¼m saldÄ±rÄ±larÄ± engeller. Beyaz/siyah listeler ve rate limiting, uzak eriÅŸimi korur.
+1. **Oturum Yönetimi**: Benzersiz oturum kimlikleri ve KVDB ile tarihçeyi izole edin; durum dönüştürücü monadlar (state transformer monads) ile doğrulanabilir hesaplamalar sağlayın.
+2. **Model Koruması**:
+   - **Oturumsuz Modeller**: Özel verileri filtreleyin; FPETS (Format-Preserving Encryption for Text Slicing) ile şifreleme, başarı oranlarını %38-89 korur. FHE (Fully Homomorphic Encryption) hesaplamalara izin verir.
+   - **Oturum Farkındalığı**: Prompt tuning ile kullanıcıya özgü parametreler ekleyin, temel LLM'yi dondurun.
+3. **Sandboxing**: Kaynak sınırlamaları ve Docker gibi izole ortamlar; kısıtlı BashAgent, tüm saldırıları engeller. Beyaz/siyah listeler ve rate limiting, uzak erişimi korur.
 
 Jit.io'nun 7 ipucu:
-- GiriÅŸ doÄŸrulama ve Ã§Ä±kÄ±ÅŸ sanitizasyonu (Rebuff gibi araÃ§larla).
-- Yetki kÄ±sÄ±tlamasÄ± ve izolasyon (en az yetki ilkesi).
-- Kod ve baÄŸÄ±mlÄ±lÄ±k taramasÄ± (Semgrep, Jit ajanlarÄ±).
-- UÃ§tan uca ÅŸifreleme (TLS 1.3, AES-256).
-- DavranÄ±ÅŸ izleme ve rate limiting (OpenTelemetry).
-- Just-in-Time gÃ¼venlik (dinamik eriÅŸim).
-- GerÃ§ek zamanlÄ± yanÄ±t ve kurtarma (SIEM entegrasyonu).
+- Giriş doğrulama ve çıkış sanitizasyonu (Rebuff gibi araçlarla).
+- Yetki kısıtlaması ve izolasyon (en az yetki ilkesi).
+- Kod ve bağımlılık taraması (Semgrep, Jit ajanları).
+- Uçtan uca şifreleme (TLS 1.3, AES-256).
+- Davranış izleme ve rate limiting (OpenTelemetry).
+- Just-in-Time güvenlik (dinamik erişim).
+- Gerçek zamanlı yanıt ve kurtarma (SIEM entegrasyonu).
 
-Google Cloud'un katmanlÄ± yaklaÅŸÄ±mÄ±: Kimlik doÄŸrulama, yetkilendirme, denetlenebilirlik ve gÃ¼venli geliÅŸtirme ile geleneksel; guard modelleri ve adversè¨“ç·´ ile AI'ye Ã¶zgÃ¼.
+Google Cloud'un katmanlı yaklaşımı: Kimlik doğrulama, yetkilendirme, denetlenebilirlik ve güvenli geliştirme ile geleneksel; guard modelleri ve advers訓練 ile AI'ye özgü.
 
-A2AS Ã‡erÃ§evesi: BASIC modeli (Behavior Certificates, Authenticated Prompts, Security Boundaries, In-Context Defenses, Codified Policies) ile ajan gÃ¼venliÄŸini saÄŸlar; baÄŸlam penceresinde Ã§alÄ±ÅŸÄ±r, prompt enjeksiyonunu Ã¶nler.
+A2AS Çerçevesi: BASIC modeli (Behavior Certificates, Authenticated Prompts, Security Boundaries, In-Context Defenses, Codified Policies) ile ajan güvenliğini sağlar; bağlam penceresinde çalışır, prompt enjeksiyonunu önler.
 
-OWASP TabanlÄ± Kontrol Listesi: 15 kategoride 163 Ã¶ÄŸe; AI yÃ¶netiÅŸimi, gÃ¼venli tasarÄ±m, prompt gÃ¼venliÄŸi, ajan aracÄ± gÃ¼venliÄŸi gibi alanlar kapsar.
+OWASP Tabanlı Kontrol Listesi: 15 kategoride 163 öğe; AI yönetişimi, güvenli tasarım, prompt güvenliği, ajan aracı güvenliği gibi alanlar kapsar.
 
-### En Ä°yi Uygulamalar ve Ã‡erÃ§eveler
-- **Guard Modelleri**: YÃ¼ksek etkili eylemleri denetler.
-- **Advers EÄŸitim**: SimÃ¼le saldÄ±rÄ±larla dayanÄ±klÄ±lÄ±k artÄ±rÄ±lÄ±r.
-- **SLSA Ã‡erÃ§evesi**: YazÄ±lÄ±m tedarik zinciri gÃ¼venliÄŸi iÃ§in SBOM ile kullanÄ±lÄ±r.
-- **A2A ProtokolÃ¼**: Ajanlar arasÄ± iletiÅŸimde sandboxing ve giriÅŸ sanitizasyonu.
-- **MCP GÃ¼venliÄŸi**: AraÃ§ zehirlenmesi tarayÄ±cÄ±larÄ± ve checklist'ler.
+### En İyi Uygulamalar ve Çerçeveler
+- **Guard Modelleri**: Yüksek etkili eylemleri denetler.
+- **Advers Eğitim**: Simüle saldırılarla dayanıklılık artırılır.
+- **SLSA Çerçevesi**: Yazılım tedarik zinciri güvenliği için SBOM ile kullanılır.
+- **A2A Protokolü**: Ajanlar arası iletişimde sandboxing ve giriş sanitizasyonu.
+- **MCP Güvenliği**: Araç zehirlenmesi tarayıcıları ve checklist'ler.
 
-TÃ¼rkÃ§e baÄŸlamda, IBM GÃ¼venlik DoÄŸrulama AI AjanÄ± gibi entegrasyonlar, otomasyon ve zeki karar alma iÃ§in vurgulanÄ±r; yapay zeka siber gÃ¼venlik teknolojilerini ÅŸekillendirirken, log toplama ve regex gibi protokoller entegre edilir.
+Türkçe bağlamda, IBM Güvenlik Doğrulama AI Ajanı gibi entegrasyonlar, otomasyon ve zeki karar alma için vurgulanır; yapay zeka siber güvenlik teknolojilerini şekillendirirken, log toplama ve regex gibi protokoller entegre edilir.
 
 ### Risk ve Savunma Tablosu
 
-| Tehdit TÃ¼rÃ¼ | AÃ§Ä±klama | Savunma Stratejisi | Kaynak |
+| Tehdit Türü | Açıklama | Savunma Stratejisi | Kaynak |
 |-------------|----------|---------------------|--------|
-| Prompt Enjeksiyonu | ZararlÄ± giriÅŸlerle ajan manipÃ¼lasyonu | GiriÅŸ sanitizasyonu, guard modelleri | , , [post:28] |
-| Veri Zehirlenmesi | EÄŸitim verilerine mÃ¼dahale | Veri bÃ¼tÃ¼nlÃ¼ÄŸÃ¼ doÄŸrulamasÄ±, diferansiyel gizlilik | ,  |
-| AraÃ§ Zehirlenmesi | AraÃ§ tanÄ±mlarÄ±nda gizli talimatlar | TarayÄ±cÄ±lar ve beyaz listeler | [post:18],  |
-| DoS SaldÄ±rÄ±larÄ± | Kaynak tÃ¼ketimi | Rate limiting, kaynak sÄ±nÄ±rlamalarÄ± | ,  |
-| Gizlilik SÄ±zÄ±ntÄ±larÄ± | Hassas veri ifÅŸasÄ± | Åifreleme (FPETS, FHE) | ,  |
-| Ajan-Ajan Enfeksiyonu | Ã‡ok ajanlÄ± sistemlerde bulaÅŸma | A2AS gibi protokoller | , [post:22] |
+| Prompt Enjeksiyonu | Zararlı girişlerle ajan manipülasyonu | Giriş sanitizasyonu, guard modelleri | , , [post:28] |
+| Veri Zehirlenmesi | Eğitim verilerine müdahale | Veri bütünlüğü doğrulaması, diferansiyel gizlilik | ,  |
+| Araç Zehirlenmesi | Araç tanımlarında gizli talimatlar | Tarayıcılar ve beyaz listeler | [post:18],  |
+| DoS Saldırıları | Kaynak tüketimi | Rate limiting, kaynak sınırlamaları | ,  |
+| Gizlilik Sızıntıları | Hassas veri ifşası | Şifreleme (FPETS, FHE) | ,  |
+| Ajan-Ajan Enfeksiyonu | Çok ajanlı sistemlerde bulaşma | A2AS gibi protokoller | , [post:22] |
 
-### Gelecek YÃ¶nelimler
-AI ajan gÃ¼venliÄŸi, standartlaÅŸma (A2AS gibi) ve blockchain entegrasyonuyla evrilir; Ã¶rneÄŸin, Theoriq protokolÃ¼ katkÄ± kanÄ±tÄ± ve ceza mekanizmalarÄ±yla gÃ¼ven saÄŸlar. Ã‡ok ajanlÄ± sistemlerde (multi-agent AI), daÄŸÄ±tÄ±lmÄ±ÅŸ yapÄ± gÃ¼venlik artÄ±rÄ±r. Ancak, token kullanÄ±m yÃ¼kÃ¼ ve model sapmalarÄ± gibi sÄ±nÄ±rlamalar devam eder.
+### Gelecek Yönelimler
+AI ajan güvenliği, standartlaşma (A2AS gibi) ve blockchain entegrasyonuyla evrilir; örneğin, Theoriq protokolü katkı kanıtı ve ceza mekanizmalarıyla güven sağlar. Çok ajanlı sistemlerde (multi-agent AI), dağıtılmış yapı güvenlik artırır. Ancak, token kullanım yükü ve model sapmaları gibi sınırlamalar devam eder.
 
-Bu inceleme, AI ajanlarÄ±nÄ±n dengeli kullanÄ±mÄ±nÄ± teÅŸvik eder; riskler yÃ¶netilebilir olsa da, sÃ¼rekli izleme ve gÃ¼ncelleme ÅŸarttÄ±r.
+Bu inceleme, AI ajanlarının dengeli kullanımını teşvik eder; riskler yönetilebilir olsa da, sürekli izleme ve güncelleme şarttır.
 
 **Ana Kaynaklar:**
 - [Security of AI Agents - arXiv](https://arxiv.org/pdf/2406.08689.pdf)
