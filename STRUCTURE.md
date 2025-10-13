@@ -1,25 +1,24 @@
-# Repository Structure and Conventions
+# Depo Yapısı ve Kurallar
 
-Purpose: Prepare and maintain an academic paper on MCP security with clear separation between manuscript, references, and notes — without removing historical material.
+Amaç: MCP güvenliği üzerine akademik bildiriyi; metin, referans ve notları net bir ayrımla yönetmek. Tarihsel içerik silinmez, arşivlenir.
 
-Top‑level layout
-- `paper/` — LaTeX manuscript (main.tex, sections, figures, bibliography)
-- `references/academic/` — Academic PDFs (arXiv/MDPI/etc.) for offline reference
-- `references/resources/` — Misc resources (protocols, abstract collections)
-- `notes/` — Working notes (Markdown)
-- `archive/` — Parked or historical content kept for reference (not used by build)
-- `scripts/` — Build/clean helper scripts (Windows and POSIX)
-- `.github/workflows/` — CI (link check, LaTeX build)
-- `CITATIONS.md` — Human‑readable citations list with links and access dates
+Üst Düzey Yerleşim
+- `paper/` — LaTeX bildiri (main.tex, bölümler, şekiller, kaynakça)
+- `references/academic/` — Akademik PDF’ler (arXiv/MDPI vb., çevrimdışı okuma)
+- `references/resources/` — Ek kaynaklar (protokol özetleri, abstract derlemeleri)
+- `notes/` — Çalışma notları (Markdown)
+- `archive/` — Arşiv/park edilen içerik (derlemede kullanılmaz)
+- `scripts/` — Derleme/temizleme betikleri (Windows ve POSIX)
+- `.github/workflows/` — CI (link kontrolü, LaTeX derleme)
+- `CITATIONS.md` — URL ve erişim tarihleriyle insan okunur atıf listesi
 
-Conventions
-- Keep manuscript content in `paper/sections/*.tex` and cite via `paper/bibliography/references.bib`.
-- Store PDFs in `references/academic/`. Use concise filenames (avoid extremely long names).
-- Keep active notes in `notes/`. Anything not actively used can be moved to `archive/`.
-- Do not delete historical files; move to `archive/` if you need to declutter.
+Kurallar
+- Bildiri içeriğini `paper/sections/*.tex` altında tutun; atıf için `paper/bibliography/references.bib` kullanın.
+- PDF’leri `references/academic/` altında saklayın; dosya adlarını kısa ve anlamlı tutun.
+- Aktif notlar `notes/` altında; kullanım dışı kalanları `archive/` altına taşıyın.
 
-Build and Tools
-- Windows: `./scripts/build-paper.ps1 -Open` and `./scripts/clean-paper.ps1`
-- POSIX: `bash scripts/build-paper.sh` and `bash scripts/clean-paper.sh`
-- CI produces a PDF artifact from `paper/main.tex` on push/PR.
+Derleme ve Araçlar
+- Windows: `./scripts/build-paper.ps1 -Open` ve `./scripts/clean-paper.ps1`
+- POSIX: `bash scripts/build-paper.sh` ve `bash scripts/clean-paper.sh`
+- CI, push/PR ile `paper/main.tex`’ten PDF artifact üretir.
 

@@ -1,35 +1,35 @@
-# MCP Protocol Security — LaTeX Paper Workspace
+# MCP Protokolü Güvenliği — LaTeX Bildiri Çalışma Alanı
 
-This repository contains a LaTeX project to write an academic paper on Model Context Protocol (MCP) security, along with references and working notes. No historical files are removed; older content is kept under `archive/`.
+Bu depo, Model Bağlam Protokolü (MCP) güvenliği üzerine bir akademik bildiriyi hazırlamak için oluşturulmuş LaTeX projesini, başvurulan kaynakları ve çalışma notlarını içerir. Tarihsel içerikler silinmez; eski materyaller `archive/` altında tutulur.
 
-Quick Start (Windows)
-- Install MiKTeX or TeX Live, and VS Code extension "LaTeX Workshop".
-- Build the paper:
-  - VS Code → Command Palette → LaTeX Workshop: "Recipes" → "latexmk (pdf)", or
+Hızlı Başlangıç (Windows)
+- MiKTeX veya TeX Live kurun, VS Code için "LaTeX Workshop" eklentisini yükleyin.
+- Derleme:
+  - VS Code → Komut Paleti → LaTeX Workshop: "Recipes" → "latexmk (pdf)", veya
   - Terminal: `cd paper && latexmk -pdf -interaction=nonstopmode -synctex=1 main.tex`
 
-Scripts
+Betikler
 - Windows: `./scripts/build-paper.ps1 -Open`, `./scripts/clean-paper.ps1`
 - POSIX: `bash scripts/build-paper.sh`, `bash scripts/clean-paper.sh`
 
-Project Layout
-- `paper/` — manuscript (main.tex, sections, bibliography, figures)
-- `references/academic/` — academic PDFs (offline reference)
-- `references/resources/` — supporting resources
-- `notes/` — working notes (Markdown), see `notes/README.md` and `notes/combined.md`
-- `archive/` — parked/historical content (not used by the build)
-- `CITATIONS.md` — human‑readable citations (URLs and access dates)
-- `.vscode/` — settings and tasks (LaTeX Workshop)
-- `.github/workflows/` — CI (link check and PDF build)
+Depo Yapısı
+- `paper/` — bildiri (main.tex, bölümler, kaynakça, şekiller)
+- `references/academic/` — akademik PDF’ler (çevrimdışı referans)
+- `references/resources/` — yardımcı kaynaklar
+- `notes/` — çalışma notları (Markdown), bkz. `notes/README.md` ve `notes/combined.md`
+- `archive/` — arşiv/park edilen içerik (derlemede kullanılmaz)
+- `CITATIONS.md` — insan okunur atıflar (URL ve erişim tarihleri)
+- `.vscode/` — ayarlar ve görevler (LaTeX Workshop)
+- `.github/workflows/` — CI (link kontrolü ve PDF derleme)
 
-Citations
-- Cite using `paper/bibliography/references.bib` (biblatex + biber).
-- Maintain `CITATIONS.md` for quick reference with URLs and access dates.
+Atıflar
+- LaTeX’te `paper/bibliography/references.bib` (biblatex + biber) kullanın.
+- Hızlı bakış için `CITATIONS.md` dosyasını URL ve erişim tarihiyle güncel tutun.
 
 CI
-- Markdown link checking: `.github/workflows/link-check.yml`.
-- PDF build: `.github/workflows/latex-build.yml` uploads `paper/main.pdf` as an artifact.
+- Markdown link kontrolü: `.github/workflows/link-check.yml`.
+- PDF derleme: `.github/workflows/latex-build.yml` `paper/main.pdf` çıktısını artifact olarak yükler.
 
-Contributing
-- Prefer small, focused PRs; keep sections tidy and cite sources.
-- Do not commit LaTeX build artifacts (`.gitignore` excludes common outputs).
+Katkı
+- Küçük ve odaklı PR’lar tercih edilir; bölümleri düzenli tutun ve atıf yapın.
+- LaTeX derleme çıktıları commit edilmemelidir (`.gitignore` yaygın çıktıları hariç tutar).

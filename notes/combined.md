@@ -1,22 +1,22 @@
-# Combined Notes (Auto-curated)
+# Birleşik Notlar (Özet)
 
-Below is a merged view of key sections from the notes. For full context, follow deep links to the original files.
+Aşağıda, notların öne çıkan bölümlerine dair kısa bir özet bulunur. Ayrıntılar için ilgili dosyalara gidiniz.
 
-## Literatür (Summary)
+## Literatür (Özet)
 
-[See full notes](./literatur.md)
+[Tam notları görüntüle](./literatur.md)
 
-## Protokol Araştırması (Summary)
+## Protokol Araştırması (Özet)
 
-[See full notes](./protokol-arastirmasi.md)
+[Tam notları görüntüle](./protokol-arastirmasi.md)
 
-## Google Araştırması (Leads)
+## Google Araştırması (Öncüller)
 
-[See full notes](./google-arastirmasi.md)
+[Tam notları görüntüle](./google-arastirmasi.md)
 
-## X Araştırması (Threats)
+## X Araştırması (Tehditler)
 
-[See full notes](./x-arastirmasi.md)
+[Tam notları görüntüle](./x-arastirmasi.md)
 
-> Tip: Keep this page as a curated overview. Edit originals; summarize here periodically.
+> İpucu: Bu sayfayı periyodik olarak güncellenen bir özet olarak kullanın. Düzenlemeleri asıl notlarda yapın; buraya kısa özetleri yansıtın.
 

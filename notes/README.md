@@ -1,21 +1,21 @@
-# Notes Index
+# Notlar Dizini
 
-This index links all working notes with a short description and suggested reading order.
+Bu dizin, çalışma sürecindeki notların kısa tanımlarını ve bağlantılarını içerir. Önerilen okuma sırası aşağıdadır.
 
 - Google Araştırması — `notes/google-arastirmasi.md`
-  - Curated search leads and query ideas around MCP: architecture, security, tool poisoning, A2A, supply chain.
+  - MCP mimarisi, güvenlik, tool poisoning, A2A ve tedarik zinciri risklerine dair arama öncülleri ve bağlantılar.
 
 - Literatür — `notes/literatur.md`
-  - Turkish literature review synthesis on MCP: architecture, adoption, and security themes with source links.
+  - MCP üzerine mimari, benimseme ve güvenlik temalarını özetleyen Türkçe literatür notları.
 
 - Protokol Araştırması — `notes/protokol-arastirmasi.md`
-  - Protocol-focused analysis: roles, message flows, trust boundaries; pointers to primary specs/tutorials.
+  - Roller, mesaj akışları, güven sınırları; birincil dokümanlara/örneklere giden bağlantılar.
 
 - X Araştırması — `notes/x-arastirmasi.md`
-  - Aggregated threats and incidents collected from X/Twitter and blogs: exposed servers, tool poisoning, CVEs.
+  - X/Twitter ve bloglardan derlenen tehditler ve vakalar: açık sunucular, tool poisoning, CVE’ler.
 
-Tips
-- Keep notes in Markdown with clear headings and dates.
-- Use short ASCII filenames; keep rich Turkish content inside the file.
-- Consider moving concluded notes to `archive/` to keep this list focused.
+İpuçları
+- Notları Markdown başlıkları ve tarih içerecek şekilde tutun.
+- Dosya adlarında ASCII kullanın; içerikte Türkçe karakterler serbesttir.
+- Gündem dışı notları `archive/` altına taşıyarak bu listeyi güncel tutun.
 

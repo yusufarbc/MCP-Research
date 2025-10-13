@@ -1,38 +1,38 @@
-We group attacks by their primary vector and intended impact, illustrating each with recent cases.
+Saldırı sınıflarını ana vektör ve etkilerine göre grupluyor, güncel vakalarla örneklendiriyoruz.
 
 Prompt/Tool Poisoning
-- Malicious instructions embedded in tool descriptions or responses steer the model to leak data or execute risky actions. Impacts include credential exfiltration and policy bypass \cite{arXiv250323278,arXiv250812566}.
+- Araç tanımlarına veya yanıtlarına gömülü kötü talimatlar, modeli veri sızıntısı veya riskli eylemlere yöneltebilir. Etkiler: kimlik bilgisi sızdırma, politika atlatma \cite{arXiv250323278,arXiv250812566}.
 
-Plan Injection
-- Multi-step reasoning frameworks (ReAct, ToT) can be subverted by crafted intermediate content to alter subsequent actions, escalating privileges over iterations \cite{arXiv250907595}.
+Plan Enjeksiyonu
+- ReAct, Tree-of-Thoughts gibi çok adımlı akıl yürütme yöntemleri; ara içeriklerle sonraki adımların saptırılması ve kademeli ayrıcalık artışı için hedef alınabilir \cite{arXiv250907595}.
 
-Remote Code Execution (RCE)
-- Unsafe command construction, insecure deserialization, or over-privileged tools lead to arbitrary code execution on the server/host.
+Uzaktan Kod Çalıştırma (RCE)
+- Güvensiz komut inşası, serileştirme veya aşırı ayrıcalıklı araçlar, sunucu/host üzerinde keyfi kod çalıştırmaya yol açar.
 
-Network Pivoting (SSRF/DNS Rebinding)
-- Tools performing network I/O may be abused to access internal services or metadata endpoints; DNS rebinding can break origin assumptions.
+Ağ Pivotu (SSRF/DNS Rebinding)
+- Ağ I/O yapan araçlar, iç servisler veya metadata uç noktalarına erişim için kötüye kullanılabilir; DNS rebinding köken varsayımlarını bozar.
 
-AuthN/Z Gaps and Open Servers
-- Exposed MCP servers without proper authentication or capability scoping allow arbitrary queries and data access \cite{MDPIElectronics3267}.
+Kimlik Doğrulama/Yetkilendirme Açıkları ve Açık Sunucular
+- Kimlik doğrulaması veya yetenek kapsamı olmadan erişime açılan MCP sunucuları ile sınırsız sorgu ve veri erişimi mümkün olur \cite{MDPIElectronics3267}.
 
-Supply-Chain and Typosquatting
-- Malicious packages or server updates inject backdoors into tools, compromising downstream clients.
+Tedarik Zinciri ve Typosquatting
+- Kötü amaçlı paketler veya sunucu güncellemeleri arka kapı yerleştirebilir; aşağı akıştaki istemcileri etkiler.
 
 \begin{table}[h]
 \centering
 \begin{tabular}{@{}lll@{}}
 \toprule
-Attack Class & Typical Vector & Primary Impact \\
+Saldırı Sınıfı & Tipik Vektör & Birincil Etki \\
 \midrule
-Tool/Prompt Poisoning & Untrusted metadata/content & Data exfiltration, policy bypass \\
-Plan Injection & Iterative reasoning artifacts & Unauthorized actions, escalation \\
-RCE & Over-privileged tools, unsafe exec & Host compromise \\
-SSRF/DNS Rebinding & Network-capable tools & Internal data access, pivot \\
-AuthN/Z Gaps & Open/weakly protected servers & Unrestricted queries \\
-Supply Chain & Malicious packages/updates & Widespread compromise \\
+Tool/Prompt Poisoning & Güvenilmeyen meta veri/içerik & Veri sızıntısı, politika atlatma \\
+Plan Enjeksiyonu & Yinelemeli akıl yürütme çıktıları & Yetkisiz eylem, ayrıcalık artışı \\
+RCE & Aşırı ayrıcalıklı araçlar, güvensiz exec & Host ele geçirilmesi \\
+SSRF/DNS Rebinding & Ağ yetenekli araçlar & İç veri erişimi, pivot \\
+AuthN/Z Açıkları & Açık/zayıf korumalı sunucular & Sınırsız sorgu \\
+Tedarik Zinciri & Kötü paketler/güncellemeler & Yaygın kompromizasyon \\
 \bottomrule
 \end{tabular}
-\caption{MCP attack classes and effects (non-exhaustive).}
+\caption{MCP saldırı sınıfları ve etkileri (tam değildir).}
 \label{tab:attacks}
 \end{table}
 

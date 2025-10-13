@@ -1,12 +1,12 @@
-# References Directory
+# Referanslar Dizini
 
-This folder stores reference materials used during research and writing.
+Bu klasör, araştırma ve yazım sırasında başvurulan materyalleri içerir.
 
-- `academic/`: Publisher or arXiv PDFs for offline reading.
-- `resources/`: Supporting PDFs (protocol summaries, abstract collections, etc.).
+- `academic/`: Yayıncı veya arXiv PDF’leri (çevrimdışı okuma için)
+- `resources/`: Destekleyici PDF’ler (protokol özetleri, abstract derlemeleri vb.)
 
-Guidelines
-- Prefer concise filenames (e.g., `2509.07595v1.pdf`, `electronics-14-03267-v2.pdf`).
-- Respect licenses of all materials; these files are for research purposes only.
-- Cite sources via `paper/bibliography/references.bib` and keep `CITATIONS.md` updated with URLs and access dates.
+İlkeler
+- Dosya adlarını kısa ve anlamlı tutun (örn. `2509.07595v1.pdf`, `electronics-14-03267-v2.pdf`).
+- Tüm materyallerin lisanslarına saygı gösterin; bu dosyalar yalnızca araştırma amaçlıdır.
+- LaTeX atıfları için `paper/bibliography/references.bib` kullanın; `CITATIONS.md` dosyasını URL ve erişim tarihiyle senkron tutun.
 

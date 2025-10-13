@@ -1,11 +1,11 @@
-MCP aims to standardize how Large Language Model (LLM) applications interact with external tools and data sources. While this brings significant capability and interoperability benefits, it also introduces new trust boundaries and attack surfaces that differ from traditional web APIs and plugin ecosystems. This paper provides a consolidated view of MCP security risks and practical hardening guidance.
+MCP, Büyük Dil Modeli (LLM) uygulamalarının harici araçlar ve veri kaynaklarıyla etkileşimini standartlaştırmayı amaçlar. Bu, önemli yetenek ve birlikte çalışabilirlik faydaları sağlarken, geleneksel web API’leri ve eklenti ekosistemlerinden farklı güven sınırları ve saldırı yüzeyleri de getirir. Bu çalışma, MCP’nin güvenlik risklerine bütüncül bir bakış ve pratik sıkılaştırma rehberi sunar.
 
-Contributions
-- A structured threat model for MCP deployments delineating assets, adversaries, assumptions, and security goals.
-- A taxonomy of attack classes including tool/prompt poisoning, plan injection, RCE and network pivoting via SSRF/DNS rebinding, and supply-chain risks, illustrated with recent cases \cite{arXiv250323278,arXiv250907595,arXiv250812566,MDPIElectronics3267}.
-- A set of actionable defenses and deployment recommendations: isolation and sandboxing, least-privilege capabilities, rigorous input validation and output constraints, observability and rate limiting, and protocol-level enhancements.
+Katkılarımız
+- Varlıklar, saldırgan tipleri, varsayımlar ve güvenlik hedeflerini netleştiren yapılandırılmış bir MCP tehdit modeli.
+- Tool/prompt poisoning, plan enjeksiyonu, RCE ve SSRF/DNS rebinding ile tedarik zinciri risklerini içeren bir saldırı taksonomisi; güncel örneklerle birlikte \cite{arXiv250323278,arXiv250907595,arXiv250812566,MDPIElectronics3267}.
+- Yalıtım ve sandboxing, en az ayrıcalık, sıkı girdi/çıktı doğrulaması, gözlemlenebilirlik ve oran sınırlama gibi uygulanabilir savunmalar ile protokol düzeyi öneriler.
 
-Scope and Non-Goals
-- We focus on the protocol usage and typical stacks (client–server–transport), not model internals or training-time data governance.
-- Examples target real-world operator needs (DevOps/SecOps) with emphasis on misconfiguration risks and defense-in-depth.
+Kapsam ve Kısıtlar
+- Odak, modelin içsel eğitimi değil protokol kullanımı ve tipik yığınlardır (istemci–sunucu–taşıma).
+- Örnekler, yanlış yapılandırma riskleri ve katmanlı savunmaya vurgu ile işletimsel (DevOps/SecOps) ihtiyaçları hedefler.
 

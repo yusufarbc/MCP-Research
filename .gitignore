@@ -26,5 +26,6 @@ dist/
 *.out
 *.run.xml
 *.synctex.gz
+paper/*.synctex*
 *.toc
 paper/*.pdf

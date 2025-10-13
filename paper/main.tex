@@ -2,6 +2,7 @@
 \documentclass[11pt,a4paper]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
+\usepackage[turkish]{babel}
 \usepackage{lmodern}
 \usepackage{geometry}
 \geometry{margin=1in}
@@ -12,8 +13,8 @@
   linkcolor=blue,
   citecolor=teal,
   urlcolor=magenta,
-  pdftitle={MCP Security},
-  pdfauthor={Yusuf Arabci et al.}
+  pdftitle={MCP Güvenliği},
+  pdfauthor={Yusuf Talha Arabacı ve ark.}
 }
 \usepackage{graphicx}
 \usepackage{tikz}
@@ -25,30 +26,29 @@
 \usepackage[backend=biber,style=numeric,sorting=none]{biblatex}
 \addbibresource{bibliography/references.bib}
 
-\title{Model Context Protocol (MCP) Security:\\ Threats, Defenses, and Deployment Guidance}
-\author{Yusuf Ar\"{a}b\c{c}\i{} et al.}
-\date{\\Draft: \today}
+\title{Model Bağlam Protokolü (MCP) Güvenliği:\\ Tehditler, Savunmalar ve Uygulama Rehberi}
+\author{Yusuf Talha Arabacı ve ark.}
+\date{Taslak: \today}
 
 \begin{document}
 \maketitle
 \begin{abstract}
-We study the security landscape of the Model Context Protocol (MCP), outlining threat models, attack classes, and practical defenses for safe deployments.\\
-This is a working draft prepared with \LaTeX{} and VS Code.
+Bu çalışma, Model Bağlam Protokolü (MCP) güvenlik görünümünü; tehdit modelleri, saldırı sınıfları ve güvenli devreye alma için pratik savunmalarla birlikte ele almaktadır.
 \end{abstract}
 
-\section{Introduction}
+\section{Giriş}
 \input{sections/01-introduction}
-\section{Background}
+\section{Arkaplan}
 \input{sections/02-background}
-\section{Threat Model}
+\section{Tehdit Modeli}
 \input{sections/03-threat-model}
-\section{Vulnerabilities and Attacks}
+\section{Zafiyetler ve Saldırılar}
 \input{sections/04-attacks}
-\section{Defenses and Best Practices}
+\section{Savunmalar ve En İyi Uygulamalar}
 \input{sections/05-defenses}
-\section{Related Work}
+\section{İlgili Çalışmalar}
 \input{sections/06-related}
-\section{Conclusion}
+\section{Sonuç}
 \input{sections/07-conclusion}
 
 \printbibliography
