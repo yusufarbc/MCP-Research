@@ -16,7 +16,7 @@ Project Layout
 - `paper/` — manuscript (main.tex, sections, bibliography, figures)
 - `references/academic/` — academic PDFs (offline reference)
 - `references/resources/` — supporting resources
-- `notes/` — working notes (Markdown)
+- `notes/` — working notes (Markdown), see `notes/README.md` and `notes/combined.md`
 - `archive/` — parked/historical content (not used by the build)
 - `CITATIONS.md` — human‑readable citations (URLs and access dates)
 - `.vscode/` — settings and tasks (LaTeX Workshop)
@@ -33,4 +33,3 @@ CI
 Contributing
 - Prefer small, focused PRs; keep sections tidy and cite sources.
 - Do not commit LaTeX build artifacts (`.gitignore` excludes common outputs).
-
