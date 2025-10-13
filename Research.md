@@ -1,12 +1,21 @@
 # MCP Araştırma Raporu
 
-## İçindekiler
-- [Literatür](#literatür)
-- [Protokol Araştırması](#protokol-araştırması)
-- [Google Araştırması](#google-araştırması)
-- [X Araştırması](#x-araştırması)
+## Özet
+- MCP (Model Context Protocol) mimarisi, istemci–sunucu ayrımı ve JSON‑RPC tabanlı araç/ kaynak keşfi ile birlikte çalışabilirliği artırır.
+- Kullanım alanları; asistan entegrasyonu, otomasyon (tasarımdan koda), kurumsal veri erişimi ve cihaz kontrolünü kapsar.
+- Güvenlikte temel riskler: araç zehirleme, prompt enjeksiyonu, açık sunucular, tedarik zinciri ve RCE vakaları; savunmada sandboxing, en az yetki ve denetlenebilirlik öne çıkar.
+- Standartlaşma ve yönetişim eksikleri ile performans/maliyet konuları, gelecek çalışmaların odağıdır.
 
-## Literatür
+Not: Ayrıntılar için Rapor bölümüne geçiniz.
+
+## İçindekiler
+- [Özet](#özet)
+- [Rapor](#rapor)
+- [Ek A: Literatür](#ek-a-literatür)
+- [Ek B: Google Scholar ve Sentez](#ek-b-google-scholar-ve-sentez)
+- [Ek C: Güncel Olaylar](#ek-c-güncel-olaylar)
+
+## Ek A: Literatür
 
 ### Akademik Makaleler
 
@@ -113,7 +122,7 @@ Gelecekte MCP’nin tıpkı **USB-C** veya **HTTP** gibi evrensel bir altyapı s
 
 ---
 
-## Protokol Araştırması
+## Rapor
 
 ### Giriş
 
@@ -247,7 +256,7 @@ MCP protokolü doğru uygulandığında yapay zekâ dünyasında verimlilik ve y
 
 ---
 
-## Google Araştırması
+## Ek B: Google Scholar ve Sentez
 
 ### MCP'ye Giriş
 
@@ -470,7 +479,7 @@ Kalıcı iki zorunluluk:
 
 ---
 
-## X Araştırması
+## Ek C: Güncel Olaylar
 
 ### MCP'de Araç Zehirleme Saldırıları (Tool Poisoning Attacks)
 MCP sunucularında araç tanımlarına gizli zararlı talimatlar enjekte edilerek AI asistanlarının manipüle edilmesi, SSH anahtarları ve API anahtarları gibi hassas verilerin sızdırılmasına yol açan kritik bir tehdit. Saldırılar, kullanıcı onayı altında gizli eylemler gerçekleştirerek veri dışa aktarımı veya yetkisiz erişim sağlıyor. Geniş çapta tartışılan bu saldırı türü, MCP'nin tedarik zinciri risklerini vurguluyor.
