@@ -1,6 +1,7 @@
 # OS-specific
 .DS_Store
 Thumbs.db
+desktop.ini
 
 # Archives / temp
 *.tmp
@@ -11,3 +12,6 @@ Thumbs.db
 site/
 dist/
 
+# IDE settings
+.idea/
+.vscode/
