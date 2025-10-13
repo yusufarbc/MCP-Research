@@ -18,3 +18,4 @@ This repository collects notes, papers, and artifacts about the Model Context Pr
   - Ongoing threats/mitigations notes: `x-research.md`
 
 Contributions are welcome. See high-level guidelines in the root `README.md`.
+
