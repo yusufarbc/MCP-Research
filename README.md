@@ -40,12 +40,3 @@ Not yazım ipuçları
 ## Atıflar
 - LaTeX’te `paper/bibliography/references.bib` (biblatex + biber) kullanın.
 - Hızlı bakış için `CITATIONS.md` dosyasını URL ve erişim tarihiyle güncel tutun.
-
-## CI
-- Markdown link kontrolü: `.github/workflows/link-check.yml`.
-- PDF derleme: `.github/workflows/latex-build.yml` `paper/main.pdf` çıktısını artifact olarak yükler.
-
-## Katkı
-- Küçük ve odaklı PR’lar tercih edilir; bölümleri düzenli tutun ve atıf yapın.
-- LaTeX derleme çıktıları commit edilmemelidir (`.gitignore` yaygın çıktıları hariç tutar).
-
