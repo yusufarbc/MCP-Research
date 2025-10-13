@@ -8,7 +8,7 @@
 
 ## Literatur
 
-Kaynak: literatur.md
+Kaynak: literatur.md — [Tam notları görüntüle](./literatur.md)
 
 ## 📚 1. Akademik Makaleler
 
@@ -117,7 +117,7 @@ Gelecekte MCP’nin tıpkı **USB-C** veya **HTTP** gibi evrensel bir altyapı s
 
 ## Protokol Arastirmasi
 
-Kaynak: protokol-arastirmasi.md
+Kaynak: protokol-arastirmasi.md — [Tam notları görüntüle](./protokol-arastirmasi.md)
 
 ## Giriş
 
@@ -253,7 +253,7 @@ MCP protokolü doğru uygulandığında yapay zekâ dünyasında verimlilik ve y
 
 ## Google Arastirmasi
 
-Kaynak: google-arastirmasi.md
+Kaynak: google-arastirmasi.md — [Tam notları görüntüle](./google-arastirmasi.md)
 
 ## Bölüm 1: MCP'ye Giriş (Sentez)
 
@@ -478,7 +478,7 @@ Kalıcı iki zorunluluk:
 
 ## X Arastirmasi
 
-Kaynak: x-arastirmasi.md
+Kaynak: x-arastirmasi.md — [Tam notları görüntüle](./x-arastirmasi.md)
 
 #### 1. MCP'de Araç Zehirleme Saldırıları (Tool Poisoning Attacks)
 MCP sunucularında araç tanımlarına gizli zararlı talimatlar enjekte edilerek AI asistanlarının manipüle edilmesi, SSH anahtarları ve API anahtarları gibi hassas verilerin sızdırılmasına yol açan kritik bir tehdit. Saldırılar, kullanıcı onayı altında gizli eylemler gerçekleştirerek veri dışa aktarımı veya yetkisiz erişim sağlıyor. Geniş çapta tartışılan bu saldırı türü, MCP'nin tedarik zinciri risklerini vurguluyor.
