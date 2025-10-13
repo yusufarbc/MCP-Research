@@ -258,6 +258,8 @@ MCP protokolü doğru uygulandığında yapay zekâ dünyasında verimlilik ve y
 
 ## Ek B: Google Scholar ve Sentez
 
+> Not: Bu bölümdeki giriş ve mimari özetler Rapor bölümüyle örtüşür. Tekrarı azaltmak için odak; makale özetleri, tematik sentez ve ek kaynaklardır.
+
 ### MCP'ye Giriş
 
 ### Ajans Paradigması Değişimi ve Entegrasyon Zorluğu
