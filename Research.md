@@ -1,5 +1,3 @@
-﻿# Birlesik Notlar
-
 ## İçindekiler
 - [Literatür](#literatür)
 - [Protokol Araştırması](#protokol-araştırması)
