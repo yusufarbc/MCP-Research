@@ -1,0 +1,7 @@
+﻿# agentic-ai-that-understands-your-network.Replace('-', ' ').ToUpperInvariant()
+
+> Bu dosya blog-tr klasöründen kurtarma amaçlı yeniden oluşturulmuştur.
+> İçeriği geri yüklemek için lütfen metni ekleyin veya bana başlık/özet verin, tamamlayayım.
+
+- Durum: KURTARMA_PLACEHOLDER
+- Konum: docs/tr/blog/agentic-ai-that-understands-your-network.md
