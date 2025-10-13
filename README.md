@@ -11,6 +11,8 @@ Hızlı Başlangıç (Windows)
 Betikler
 - Windows: `./scripts/build-paper.ps1 -Open`, `./scripts/clean-paper.ps1`
 - POSIX: `bash scripts/build-paper.sh`, `bash scripts/clean-paper.sh`
+ - Not indeksi: `./scripts/generate-notes-index.ps1` veya `bash scripts/generate-notes-index.sh`
+ - Birleşik notlar: `./scripts/generate-notes-combined.ps1` veya `bash scripts/generate-notes-combined.sh`
 
 Depo Yapısı
 - `paper/` — bildiri (main.tex, bölümler, kaynakça, şekiller)
