@@ -65,6 +65,51 @@ STDIO seçeneği, IDE içinde çalışan yerel araçlarda en düşük gecikmeyi 
 
 Bu akışta iki temel tasarım ilkesi öne çıkar: (i) plan/uygulama ayrımı (LLM karar verir, istemci güvenlik politikalarına uygun şekilde uygular) ve (ii) denetlenebilirlik (araç çağrılarının ve sonuçlarının günlüklenmesi, geri alınabilirlik). Bildirimler/uyarılar ve kullanıcıdan ek girdi isteme mekanizmaları, çok adımlı görevlerde güvenli etkileşimi sürdürür.
 
+```mermaid
+sequenceDiagram
+    autonumber
+    participant User as Kullanıcı
+    participant Client as MCP İstemcisi (Host)
+    participant LLM as LLM
+    participant Server as MCP Sunucusu (Araçlar)
+
+    User->>Client: Talep (doğal dil)
+    Client->>LLM: Talep + Yetenek açıklamaları
+    LLM->>Client: Plan (araç çağrıları listesi)
+    Client->>Server: Tool.call (JSON‑RPC)
+    Server-->>Client: Tool.result (akış/SSE)
+    Client->>LLM: Sonuçları bağlama enjekte et
+    LLM-->>Client: Nihai yanıt
+    Client-->>User: Yanıt + (gerekirse) onay isteği
+```
+
+Örnek JSON‑RPC çağrısı (basitleştirilmiş):
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": "42",
+  "method": "tools.run",
+  "params": {
+    "tool": "search_issues",
+    "args": { "query": "error OR exception", "limit": 5 }
+  }
+}
+```
+```json
+{
+  "jsonrpc": "2.0",
+  "id": "42",
+  "result": {
+    "items": [
+      { "id": 101, "title": "Unhandled exception in parser", "severity": "high" },
+      { "id": 102, "title": "Null ref on startup", "severity": "medium" }
+    ],
+    "nextPage": null
+  }
+}
+```
+
 ## 5. Protokol Seviyesi ve Avantajları
 MCP uygulama katmanında çalışır; bu konum sayesinde mesajlar insan tarafından okunabilir JSON yapılarıyla ifade edilir ve dil/çatı bağımsız SDK’larla kolayca uygulanır. JSON‑RPC 2.0 kullanımı; hata yönetimi, yöntem/parametre sözleşmesi ve çift yönlü mesajlaşmayı basitleştirir.
 
@@ -94,6 +139,18 @@ MCP’de güvenlik, taşıma katmanı kontrolleri ile uygulama politikalarının
 - Girdi/çıktı güvenliği: Girdi doğrulama, kaçış ve çıktı sanitizasyonu; prompt korumaları (örn. Rebuff benzeri katmanlar) ve duyarlı veri maskeleme.
 - Tedarik zinciri hijyeni: SBOM (SLSA ile), imzalı yayınlar, Semgrep/Trivy statik tarama; bağımlılık güncellemelerinde onaylı havuz.
 - İzleme ve olay yönetimi: OpenTelemetry ile izleme; SIEM entegrasyonu; tehdit istihbaratı beslemeleri; geri alma/runbook’lar.
+
+#### Uygulama Kontrol Listesi
+- [ ] OAuth 2.1/ kısa ömürlü token + kapsam/rol kısıtı tanımlı
+- [ ] Uzak sunucular için TLS 1.3 (tercihen mTLS) etkin
+- [ ] Yüksek etkili eylemler için insan‑onayı ve/veya guard modeli zorunlu
+- [ ] Araç/sunucu sürümleri pin’lendi, beklenmeyen güncelleme uyarısı açık
+- [ ] Sandboxing (Docker/VM) + dosya/ağ izinleri minimize edildi
+- [ ] Rate limiting/kuota + IP/alan adı allow‑list uygulandı
+- [ ] Girdi doğrulama/kaçış + çıktı sanitizasyonu aktif
+- [ ] SBOM üretimi ve bağımlılık taraması (CI) zorunlu
+- [ ] OpenTelemetry ile telemetri + SIEM korelasyonu aktif
+- [ ] Runbook’lar ve geri alma (rollback) prosedürleri dokümante/denetlendi
 
 ### Risk ve Savunma Tablosu
 
@@ -356,19 +413,45 @@ A2A (ajan‑ajan) etkileşimlerinde çoğaltıcı tehdit yüzeyi; sıfır güven
 ### 12.4 Gelecek Yönelimler
 Standardizasyonun güçlendirilmesi (A2AS vb.), blockchain tabanlı güven/ceza mekanizmaları, çok ajanlı dağıtık güvenlik; token maliyeti ve model sapmaları gibi sınırlılıklar ile sürekli izleme/güncelleme gereksinimi.
 
+### 12.5 Mimari Örüntüler ve Anti‑Örüntüler
+- Örüntü: “Host‑aracı politikası” — LLM planlar, host uygular; host tarafında yetki/guard/onay zorunludur.
+- Örüntü: “Çoklu sunucu ayrımı” — Her sunucu için ayrı istemci oturumu ve telemetri bağı tanımlayın.
+- Örüntü: “Şema sürümlemesi” — Geriye uyumlu şema evrimi ve açık değişiklik günlüğü.
+- Anti‑Örüntü: “Tool‑as‑truth” — Araç açıklamalarına körü körüne güvenmek; mutlaka politika ve onayla sınırlayın.
+- Anti‑Örüntü: “Ağ/FS tam yetki” — Sandboxing olmadan geniş dosya/ağ izinleri vermek.
+- Anti‑Örüntü: “Sessiz güncelleme” — Sürüm pin’lemeden bağımlılık/araç güncellemek.
+
 ## 13. Sonuç
-MCP, LLM tabanlı ajan sistemlerinde standart bağlam paylaşımı, güvenlik ve birlikte çalışabilirlik için merkezî rol üstlenir. Güvenli ve verimli benimseme, sandboxing/en az yetki/denetim ile yönetişim/standardizasyon ve performans‑maliyet optimizasyonunun birlikte ele alınmasını gerektirir.
+MCP, LLM tabanlı ajan sistemlerinde standart bağlam paylaşımı, güvenlik ve birlikte çalışabilirlik için merkezî rol üstlenir. Güvenli ve verimli benimseme, sandboxing/en az yetki/denetim ile yönetişim/standardizasyon ve performans‑maliyet optimasyonunun birlikte ele alınmasını gerektirir.
+
+Önerilen sonraki adımlar:
+- Pilot: Kısıtlı yetkili, pin’lenmiş iki MCP sunucusuyla (ör. dosya sistemi + hata izleme) sınırlı kapsam pilotu.
+- Güvenlik kapıları: Yüksek etkili eylemler için guard + insan‑onayı; mTLS ve kısa ömürlü token’lar.
+- Gözlem: OpenTelemetry + SIEM ile telemetri ve uyarı eşiği; aylık kırmızı takım tatbikatı.
+- Ölçüm: Görev başarı, gecikme/maliyet, enjeksiyon/zehirleme dayanıklılığı ve gözlemlenebilirlik metriklerinin takibi.
 
 ## 14. Kaynaklar ve Bağlantılar
-- Making REST APIs Agent‑Ready: From OpenAPI to MCP — arXiv
-- Model Context Protocol (MCP): Manzara, Güvenlik Tehditleri… — arXiv (PDF)
-- LiveMCP‑101: Stress‑Testing MCP‑Enabled Systems — arXiv
-- MCPToolBench++: A Large‑Scale AI Agent MCP Benchmark — arXiv
-- Security of AI Agents — arXiv
-- 7 Proven Tips to Secure AI Agents — Jit.io
-- AI Agent Security — Google Cloud
-- A2AS Framework 1.0 (PDF)
-- AI Security Checklist — OWASP
-- AI Agent Security: MCP Security — Medium
+- [Making REST APIs Agent‑Ready: From OpenAPI to MCP (arXiv)](https://arxiv.org/abs/2507.16044)
+- [Model Context Protocol (MCP): Landscape, Security Threats… (arXiv, PDF)](https://arxiv.org/pdf/2503.23278)
+- [LiveMCP‑101: Stress‑Testing MCP‑Enabled Systems (arXiv)](https://arxiv.org/abs/2508.15760)
+- [MCPToolBench++: A Large‑Scale AI Agent MCP Benchmark (arXiv)](https://arxiv.org/abs/2508.07575)
+- [Security of AI Agents (arXiv)](https://arxiv.org/pdf/2406.08689.pdf)
+- [7 Proven Tips to Secure AI Agents (Jit.io)](https://www.jit.io/resources/devsecops/7-proven-tips-to-secure-ai-agents-from-cyber-attacks)
+- [AI Agent Security (Google Cloud)](https://cloud.google.com/transform/ai-agent-security-how-to-protect-digital-sidekicks-and-your-business)
+- [A2AS Framework 1.0 (PDF)](https://hmdhiqqomsdmtwjq.public.blob.vercel-storage.com/a2as-framework-1.0.pdf)
+- [AI Security Checklist (OWASP)](https://shivang0.github.io/index.html)
+- [AI Agent Security: MCP Security (Medium)](https://alican-kiraz1.medium.com/ai-agent-security-mcp-security-0516cb41e800)
+
+## 15. Terimler ve Kısaltmalar
+- MCP: Model Context Protocol
+- LLM: Large Language Model (Büyük Dil Modeli)
+- JSON‑RPC: JSON tabanlı uzak prosedür çağrısı protokolü
+- STDIO: Standart Girdi/Çıktı taşıma kanalı
+- SSE: Server‑Sent Events (sunucudan istemciye akış)
+- SBOM: Software Bill of Materials (Yazılım Malzeme Listesi)
+- SLSA: Supply‑chain Levels for Software Artifacts (tedarik zinciri güvenlik çerçevesi)
+- A2AS: Agents‑to‑Agents Security çerçevesi
+- MoE: Mixture of Experts mimarisi
+- mTLS: Mutual TLS (karşılıklı TLS)
 
 
