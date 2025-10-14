@@ -182,6 +182,16 @@ Bu bölüm, 2024 sonrası yayınlanan ve MCP’nin mimarisi, benimsenmesi, perfo
 - WTF is MCP and why should publishers care? — Digiday, 2025‑09 — https://digiday.com/media/wtf-is-model-context-protocol-mcp-and-why-should-publishers-care/
   - Türkçe Özet: Yayıncılıkta MCP’nin “AI çağının robots.txt’si” potansiyeli; içerik paylaşım politikaları.
 
+### 9.4 Yöntem ve Değerlendirme Kriterleri
+Bu literatür taramasında çalışmalar; (i) mimari açıklık ve şema kalitesi, (ii) araç koordinasyon başarısı (doğru aracı seçme, sıralama, hata halinde toparlanma), (iii) güvenlik (enjeksiyon/zehirleme dayanıklılığı, kimlik doğrulama akışları), (iv) operasyonel maliyetler (gecikme, istek sayısı, token/çağrı başına maliyet) ve (v) gözlemlenebilirlik/denetlenebilirlik (telemetri kapsamı, olay günlükleri, geri alınabilirlik) eksenlerinde değerlendirilir. Çalışmalar, gerçek MCP sunucularıyla etkileşimli senaryolar (MCP‑Universe) kullanmanın, sentetik görev setlerine göre daha güvenilir içgörü ürettiğini vurgular; ancak şema kalitesi ve yetenek açıklamalarındaki farklılıklar nedeniyle sonuçların araç/alan bağımlı olabildiğini not eder. Reprodüksiyon için sürüm kilitleme, deterministik tohumlama ve senaryo/günlük paylaşımı önerilir.
+
+### 9.5 Açık Araştırma Boşlukları
+- Şema standardizasyonu: Araç/kaynak şemalarında kalite metrikleri, alan‑özel uzantıların sürümlenmesi ve uyumluluk matrisleri.
+- Dinamik keşif ve politika bağlama: Yetenek keşfinde bağlama duyarlı filtreleme (yetki/kapsam) ve politika‑temelli görünürlük.
+- Araç koordinasyonu: Çok adımlı görevlerde zamanlama, hata toparlama (retry/backoff/guard) ve ara durumların yönetimi.
+- Güvenlik‑ilk tasarım: Araç zehirleme/prompt enjeksiyonuna karşı çok katmanlı savunma ve otomatik kırmızı takım çerçeveleri.
+- Gözlemlenebilirlik: Standart telemetri şemaları (OpenTelemetry ile MCP ekleri), olay korelasyonu ve kök neden analizi.
+
 ## 10. Google Scholar Sentezi
 
 Google Scholar taramasına dayalı bu sentez, MCP’yi bir “evrensel bağlam katmanı” olarak ele alan güncel çalışmaları temalara ayırarak özetler. Tarihsel olarak LLM‑harici araç entegrasyonu, özel/sabit köprüler nedeniyle yüksek bakım maliyeti ve parçalanma üretirken; MCP, şemaya bağlı, dinamik keşfe dayalı bir ekosistem önererek bu darboğazı aşmayı hedefler. Bulgular dört ana eksende toplanır:
@@ -212,9 +222,35 @@ Google Scholar taramasına dayalı bu sentez, MCP’yi bir “evrensel bağlam k
 
 Özetle, çalışmalar MCP’nin ölçeklenebilir bağlam yönetimi için gerekli olgunluğu sağladığını; fakat güvenlik risk yönetimi (16 tehdit senaryosu/4 saldırgan tipi), model uyumluluğu ve operasyonel maliyetlerde daha fazla standardizasyona ihtiyaç olduğunu ortaya koymaktadır.
 
+### 10.6 Standardizasyon ve Benchmark’lar
+- Spesifikasyon kalitesi: Açıklama alanları için zorunlu/opsiyonel sahalar, örnek istek/yanıtlar ve başarısızlık durumları; otomatik doğrulama şemaları.
+- Açık benchmark setleri: Gerçek MCP sunucularından oluşan görev havuzları; kapsama boyutları (kimlik akışları, uzun bağlam, bilinmeyen araçlar, hata modları).
+- Karşılaştırma metrikleri: Görev başarı oranı, maliyet/gecikme profili, araç koordinasyon skoru, güvenlik dayanıklılığı (enjeksiyon/zehirleme), gözlemlenebilirlik puanı.
+- Yayımlama: Sonuçların sürüm, ortam ve kullanım politikalarıyla birlikte raporlanması; yeniden üretilebilirlik için günlüklerin paylaşımı.
+
+### 10.7 Uygulama ve Yönetişim İpuçları
+- Versiyon/pin politikası: Araç/sunucu sürümlerini kilitleyin; uyumluluk matrisleri yayınlayın.
+- Guard kalıpları: Yüksek etkili eylemler için ikinci onay (insan‑döngü), rol/kapsam sınırlaması.
+- Olay/günlükleme: Araç çağrıları ve sonuçları için yapılandırılmış günlükler; telemetri korelasyonu ve SIEM entegrasyonu.
+- Emniyet payı: Retry/backoff, devre kesici, hızlı başarısız ol ve güvenli dur (fail‑safe) desenleri.
+
 ## 11. Güncel Olaylar
 
 Bu bölüm, MCP ekosistemindeki son güvenlik bulguları ve topluluk tartışmalarını konu başlıklarına göre derler. Genel eğilim, araç zehirleme ve prompt/komut enjeksiyonu gibi klasik vektörlerin MCP bağlamında yeni etkiler doğurduğu; açık sunucular ve tedarik zinciri olaylarının riski büyüttüğü yönündedir. Eşzamanlı olarak, checklist’ler, tarayıcılar ve yetkilendirme güncellemeleri gibi savunma katmanları olgunlaşmaktadır.
+
+### 11.1 Olaylardan Çıkan Desenler
+- Güven sınırı ihlali: Araç açıklamalarına aşırı güven (tool‑as‑truth) ve otomatik onay akışları istismarı büyütüyor.
+- Kimlik/yetki boşlukları: Açıkta kalan sunucular ve zayıf kimlik akışları, veri sızıntısını kolaylaştırıyor.
+- Tedarik zinciri kırılganlığı: Sahte/ele geçirilmiş paketler ve güncelleme sonrası davranış değişikliği (rug pull) tekrarlayan tema.
+- Dayanıklılık eksikleri: Hata modları için guard/retry/izolasyon eksik olduğunda küçük sapmalar zincir kırılmasına dönüşüyor.
+
+### 11.2 Önerilen Karşı Önlemler (Öncelikli)
+1) Kimlik ve Yetki: OAuth 2.1, kısa ömürlü belirteçler, kapsam/rol sınırlaması; uzak sunucularda mTLS.
+2) En Az Yetki ve İzolasyon: Sandboxing (Docker/VM), dosya/ağ izinlerinin kısıtlanması, allow‑list tabanlı araç erişimi.
+3) Tedarik Zinciri Hijyeni: SBOM + imzalı yayınlar; sürüm kilitleme; bağımlılık taraması (Semgrep/Trivy) ve onaylı depo.
+4) Guard ve Onay: Yüksek etkili eylemlerde guard modeller ve insan‑döngü; otomatik onayı sınırlandırın.
+5) Girdi/Çıktı Güvenliği: Girdi doğrulama/kaçış; prompt korumaları; duyarlı veri maskeleme.
+6) İzleme ve Müdahale: OpenTelemetry + SIEM; anomali tespiti; runbook/geri alma planları ve düzenli tatbikatlar.
 
 ### MCP’de Araç Zehirleme Saldırıları (Tool Poisoning Attacks)
 Araç tanımlarına gizli zararlı talimatlar enjekte edilerek asistanların manipülasyonu; SSH/API anahtarları ve yetkisiz eylemler.
