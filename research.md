@@ -108,6 +108,8 @@ MCP’de güvenlik, taşıma katmanı kontrolleri ile uygulama politikalarının
 
 ## 9. Literatür İncelemesi
 
+Bu bölüm, 2024 sonrası yayınlanan ve MCP’nin mimarisi, benimsenmesi, performansı ile güvenlik/yönetişim boyutlarını ele alan akademik çalışmaları tematik olarak derler. Genel eğilim, MCP’nin “tekil entegrasyonlar” yerine birleşik ve şema odaklı bir bağlam katmanı sağlayarak araç destekli yapay zekanın ölçeklenebilirliğini artırdığı; ancak güvenlik, araç koordinasyonu ve model uyumluluğu alanlarında açık araştırma konuları bıraktığı yönündedir.
+
 ### 9.1 Akademik Çalışmalar (Özet)
 - MCP: Landscape, Security Threats, and Future Research Directions — arXiv, 2025‑03
   - Mimari, 4 evre/16 adımlık yaşam döngüsü, 16 senaryoluk tehdit taksonomisi; güçlü yönler ve araştırma yönleri.
@@ -182,24 +184,37 @@ MCP’de güvenlik, taşıma katmanı kontrolleri ile uygulama politikalarının
 
 ## 10. Google Scholar Sentezi
 
+Google Scholar taramasına dayalı bu sentez, MCP’yi bir “evrensel bağlam katmanı” olarak ele alan güncel çalışmaları temalara ayırarak özetler. Tarihsel olarak LLM‑harici araç entegrasyonu, özel/sabit köprüler nedeniyle yüksek bakım maliyeti ve parçalanma üretirken; MCP, şemaya bağlı, dinamik keşfe dayalı bir ekosistem önererek bu darboğazı aşmayı hedefler. Bulgular dört ana eksende toplanır:
+
 ### 10.1 İncelemenin Yapısı ve Kapsamı
-Odak: MCP’nin mimarisi, benimsenme dinamikleri, ampirik performansı, güvenlik ve yönetişim. Tekrarları azaltılmış tematik sentez sunulur.
+- Kapsam: 2024 sonrası yayınlanan çalışmalar; mimari, benimsenme, performans ve güvenlik/yönetişim.
+- Yöntem: Mimari bileşenleri (istemci/sunucu, araç/kaynak şemaları, taşıma), uygulama otomasyonu (OpenAPI→MCP), alan uygulamaları (biyo‑enformatik, ICS), ampirik performans ve açık araştırma boşlukları üzerinden tematik sentez.
 
 ### 10.2 Temel Tanım ve Mimari
-İstemci/sunucu ayrımı, taşıma bağımsız üst katman, araç/kaynak şemaları ve dinamik keşif.
+- İstemci (akıl yürütme) ile sunucu (araç yürütme) arasındaki katı ayrım; yeni araçların müşteri/ajan kodu değişmeden eklenebilmesi.
+- Şema‑odaklı araç/kaynak tanımları sayesinde keşfedilebilirlik; JSON‑RPC ile yöntem/parametre sözleşmesi ve çift yönlü mesajlaşma.
+- Taşıma bağımsızlığı (STDIO/HTTP+SSE) ile yerel ve uzak kurulumlarda aynı veri modelinin kullanımı; TLS/OAuth ile standart güvenlik.
 
 ### 10.3 Uygulama, Ölçeklenebilirlik ve Benimseme
-Manuel sunucu geliştirme darboğazı → AutoMCP/OpenAPI ile otomasyon; spesifikasyon kalitesi ve araç koordinasyonu yeni engellerdir.
+- Manuel sunucu geliştirme darboğazını azaltan otomasyon yaklaşımları (OpenAPI’den otomatik MCP sunucusu üretimi, AutoMCP); ancak spesifikasyon kalitesi ve şema bütünlüğü yeni bir engel olarak beliriyor.
+- Çoklu sunucu/çoklu araç topolojilerinde koordinasyon problemi: LLM’nin planlama ve araç seçimindeki tutarlılığı için “yetenek açıklamalarının” kalitesi ve politika tabanlı sınırlamalar kritik.
+- Alan‑özgü adaptasyonlar (MCPmed, ICS) MCP’nin esnekliğini gösterirken, kurumsal kabul için denetim izleri ve yönetişim gereksinimleri öne çıkıyor.
 
 ### 10.4 Performans ve Arıza Modları
-MCPGAUGE ve benzeri benchmark’larda proaktiflik/gider dengesi; bağlam penceresi sınırlamaları ve çok adımlı görev güvenilirliği.
+- MCPGAUGE ve benzeri değerlendirmeler, “proaktiflik/ek yük” trade‑off’una işaret eder: Araç çağrılarının maliyetini düşürürken amaç tutarlılığını korumak gerekir.
+- Uzun bağlam, bilinmeyen araçlar ve kaynağa özgü şemalar, planlama hatalarına ve zincir kırılmalarına neden olabilir; hatalara dayanıklı iş akışları (retry/guard/insan‑onayı) önerilir.
+- Gözlemlenebilirlik (telemetri) ve deterministik sınırlar (rate limit/kuota) olmadan çok adımlı görevlerde başarısızlıkların saptanması zorlaşır.
 
 ### 10.5 Alanlara Göre Yoğunluk Analizi
-- En Yoğun: Yapay zeka, BT, güvenlik
-- Gelişmekte Olan: Ağ mühendisliği, veri bilimi, dijital medya
-- Potansiyel: Savunma, biyoteknoloji (erken aşama)
+- En Yoğun: Yapay zeka altyapısı, BT entegrasyonu, güvenlik.
+- Gelişmekte Olan: Ağ mühendisliği, veri bilimi, dijital medya (yayıncılıkta robots.txt benzeri politika kontrolü).
+- Potansiyel: Savunma ve biyoteknoloji (erken aşama); FAIR uyumlu, makine‑işlenebilir katmanlarla bağlam paylaşımı.
+
+Özetle, çalışmalar MCP’nin ölçeklenebilir bağlam yönetimi için gerekli olgunluğu sağladığını; fakat güvenlik risk yönetimi (16 tehdit senaryosu/4 saldırgan tipi), model uyumluluğu ve operasyonel maliyetlerde daha fazla standardizasyona ihtiyaç olduğunu ortaya koymaktadır.
 
 ## 11. Güncel Olaylar
+
+Bu bölüm, MCP ekosistemindeki son güvenlik bulguları ve topluluk tartışmalarını konu başlıklarına göre derler. Genel eğilim, araç zehirleme ve prompt/komut enjeksiyonu gibi klasik vektörlerin MCP bağlamında yeni etkiler doğurduğu; açık sunucular ve tedarik zinciri olaylarının riski büyüttüğü yönündedir. Eşzamanlı olarak, checklist’ler, tarayıcılar ve yetkilendirme güncellemeleri gibi savunma katmanları olgunlaşmaktadır.
 
 ### MCP’de Araç Zehirleme Saldırıları (Tool Poisoning Attacks)
 Araç tanımlarına gizli zararlı talimatlar enjekte edilerek asistanların manipülasyonu; SSH/API anahtarları ve yetkisiz eylemler.
