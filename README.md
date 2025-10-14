@@ -41,8 +41,5 @@ Bu depodaki ana belge `research.md`, MCP’nin teknik mimarisi, güvenlik tehdit
 - Kodlama/Encoding: Dosyalar UTF‑8 olarak saklanır. Türkçe karakterleri (Ç, Ğ, İ, Ö, Ş, Ü) koruyun.
 - Görseller: Harici bağlantı (GitHub user-attachments) tercih edilir; mümkünse başlık ve kısa altyazı ekleyin.
 
-## Katkı ve İletişim
-Katkılar memnuniyetle karşılanır. Öneriler için issue açabilir veya pull request gönderebilirsiniz.
-
 ---
-Not: Bu depo bir araştırma çalışmasıdır; üretim ortamı için güvenlik önerileri bağlama göre gözden geçirilmeli ve test edilmelidir.
+
