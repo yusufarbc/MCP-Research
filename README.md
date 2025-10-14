@@ -35,11 +35,6 @@ Bu depodaki ana belge `research.md`, MCP’nin teknik mimarisi, güvenlik tehdit
 - Literatür ve Sektör: Akademik özetler, blog/duyurular ve Türkçe özetler
 - Güncel Olaylar: Konu başlıklarına göre gruplanmış X bağlantıları (tek satır özetlerle)
 
-## Çalışma Akışı ve Rehber
-- Düzenleme: Değişiklikleri `research.md` üzerinde yapın; yeni kaynaklar eklerken kısa Türkçe özet ekleyin.
-- Bağlantılar: X bağlantıları için kısa bir bağlam cümlesi ekleyin (olay/özet/uyarı).
-- Kodlama/Encoding: Dosyalar UTF‑8 olarak saklanır. Türkçe karakterleri (Ç, Ğ, İ, Ö, Ş, Ü) koruyun.
-- Görseller: Harici bağlantı (GitHub user-attachments) tercih edilir; mümkünse başlık ve kısa altyazı ekleyin.
 
 ---
 
