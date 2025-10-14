@@ -25,24 +25,34 @@
 ## 2. Giriş
 Model Context Protocol (MCP), Anthropic tarafından açık kaynak olarak duyurulan ve LLM tabanlı sistemleri harici araçlar, API’ler ve veri kaynaklarıyla güvenli ve standart biçimde konuşturan bir protokoldür. LLM’lere “USB‑C” benzeri evrensel bir bağlam arayüzü sağlar; yazılım geliştirme süreçlerinde entegrasyon maliyetini düşürürken, güvenlik ve yönetişim gereksinimlerini gündeme taşır.
 
+MCP’nin temel yeniliği, “model” ile “dış dünya” arasında tutarlı ve şemaya bağlı bir arayüz tanımlamasıdır. Bu sayede LLM, yalnızca eğitim verisindeki bilgiye dayanmak yerine, gerçek zamanlı veri kaynaklarına bağlanabilir, iş akışlarını tetikleyebilir ve sonuçları yapılandırılmış şekilde geri alabilir. Araçlar ve kaynaklar, JSON‑RPC üzerinden keşfedilebilir bir sözleşmeyle (schema) sunulur; istemciler bu sözleşmeye göre otomatik bağlanır, yetenekleri listeleyip uygun adımları planlar. Bu yaklaşım, tek tek API entegrasyonları yerine standart bir bağlam katmanı sunarak geliştirici hızını artırır ve bakımı sadeleştirir.
+
+Endüstriyel açıdan MCP, IDE’ler (ör. VS Code/Cursor/Claude Code), chat istemcileri ve kurum içi ajan platformlarıyla hızla bütünleşmektedir. Bu bütünleşme, birden fazla MCP sunucusundan (ör. dosya sistemi, hata izleme, kurumsal veri gölleri) aynı oturumda bağlam çekebilmeyi ve LLM’nin bu bağlamla güvenli eylemler gerçekleştirmesini mümkün kılar. Böylece “metin üretimi”nden “bağlamla zenginleşmiş karar ve eylem” aşamasına geçilir.
+
 <img width="1207" height="799" alt="resim" src="https://github.com/user-attachments/assets/bdf1510b-66f6-427b-9562-f8653e73d66e" />
 
 ## 3. Amacı ve Kullanım Alanları
-MCP’nin temel amacı, LLM’ler ile harici araçlar/veri kaynakları arasında standart, bağlamsal bir iletişim katmanı sunmaktır. Örnekler:
+MCP’nin temel amacı, LLM’ler ile harici araçlar/veri kaynakları arasında standart, bağlamsal bir iletişim katmanı sunmaktır. Pratikte bu, LLM’nin hangi araçların erişilebilir olduğunu bilmesi, yeteneklerini (input/output şemalarıyla) anlaması ve bir görevi tamamlamak için doğru araç dizisini planlayıp yürütmesi anlamına gelir. Geliştirici açısından tek tek özel entegrasyonlar yazmak yerine, MCP uyumlu sunucular ekosisteminden seçerek hızlıca değer üretmek mümkündür.
+
+Örnek kullanım alanları:
 - Kişisel asistan: Google Takvim/Notion gibi hesaplara bağlanma ve eylem alma.
 - Tasarımdan koda: Figma’dan web uygulamasına otomatik dönüşüm.
 - Kurumsal veri erişimi: Çoklu veri kaynaklarının tek arayüzden sorgulanması.
 - Fiziksel cihazlar: Blender + 3B yazıcı ile doğal dil komutlarıyla tasarım/baskı.
 
+Kurumsal senaryolarda MCP; kimlik, yetki, denetim, kayıt ve politika gereksinimleriyle birlikte ele alınır. Örneğin kurumsal bilgi yönetiminde aynı anda hem raporlama veri ambarına hem de olay/günlük sistemlerine bağlanmak; bir görevi başlatmadan önce kullanıcıdan açık onay almak; yüksek etkili eylemler için “guard” modellerle ikincil teyit almak yaygın uygulamalardır.
+
 ## 4. Mimari ve Veri İletimi
 
 <img width="840" height="328" alt="resim" src="https://github.com/user-attachments/assets/ba600697-942e-426f-ad1c-839875ef9772" />
 
-MCP, JSON‑RPC 2.0 tabanlı veri katmanı ile STDIO/HTTP(SSE) taşıma katmanını ayıran iki katmanlı bir yapıya sahiptir:
+MCP, JSON‑RPC 2.0 tabanlı veri katmanı ile STDIO/HTTP(SSE) taşıma katmanını ayıran iki katmanlı bir yapıya sahiptir. Veri katmanı; araç/ kaynak keşfi, çağrı/yanıt sözleşmeleri, oturum ve bildirim akışlarının anlamsal yapısını tanımlar. Taşıma katmanı, bu mesajların nasıl iletileceğini belirler ve yerel ya da uzak kurulumlara esneklik sağlar.
 - İstemci: LLM’i barındıran uygulamanın içinde çalışır; sunucuların araç/kaynaklarını keşfeder.
 - Sunucu: Harici veri/işlevleri “araç” arayüzüyle sunan bağımsız süreçtir (dosya sistemi, veritabanı, harici API).
 - Çoklu sunucu topolojisi: Aynı host (ör. VS Code) birden fazla MCP sunucusuna eşzamanlı bağlanabilir.
 - Taşıma: STDIO (yerel, düşük gecikme, ağ yüzeyi yok) ve HTTP + Server‑Sent Events (uzak, TLS/HTTPS, OAuth 2.0/API anahtarları).
+
+STDIO seçeneği, IDE içinde çalışan yerel araçlarda en düşük gecikmeyi ve minimum saldırı yüzeyini sağlar. HTTP + SSE ise bulut/uzak hizmetlere erişimi standart web altyapılarıyla (TLS, yük dengeleme, OAuth/başlık tabanlı kimlik doğrulama) güvence altına alır. İstemci, bağlı olduğu her sunucudan “yetenek” bilgisini alır, LLM’ye aktarır ve LLM bu yetenekleri kullanarak çok adımlı bir plan oluşturur.
 
 <img width="836" height="512" alt="resim" src="https://github.com/user-attachments/assets/d0cdaa6e-aff0-4d03-ab74-bbd6107c5ff1" />
 
@@ -53,33 +63,37 @@ MCP, JSON‑RPC 2.0 tabanlı veri katmanı ile STDIO/HTTP(SSE) taşıma katmanı
 4. Kritik eylemler için kullanıcı onayı ve politikalara dayalı sınırlamalar uygulanır.
 5. Sonuç, LLM üzerinden kullanıcıya döndürülür.
 
+Bu akışta iki temel tasarım ilkesi öne çıkar: (i) plan/uygulama ayrımı (LLM karar verir, istemci güvenlik politikalarına uygun şekilde uygular) ve (ii) denetlenebilirlik (araç çağrılarının ve sonuçlarının günlüklenmesi, geri alınabilirlik). Bildirimler/uyarılar ve kullanıcıdan ek girdi isteme mekanizmaları, çok adımlı görevlerde güvenli etkileşimi sürdürür.
+
 ## 5. Protokol Seviyesi ve Avantajları
-- Uygulama katmanında çalışır; JSON‑RPC ile dil bağımsız, okunabilir ve yapılandırılmış iletişim sunar.
-- Taşıma bağımsız tasarım; yerel (STDIO) ve uzak (HTTP/SSE) kullanımları aynı veri yapısıyla destekler.
-- Güvenlikte olgun web standartlarını (TLS/HTTPS, OAuth 2.0, API anahtarları) yeniden kullanır.
-- Esnek dağıtım: Yerel geliştirme → minimal değişiklikle uzak servis dağıtımı.
+MCP uygulama katmanında çalışır; bu konum sayesinde mesajlar insan tarafından okunabilir JSON yapılarıyla ifade edilir ve dil/çatı bağımsız SDK’larla kolayca uygulanır. JSON‑RPC 2.0 kullanımı; hata yönetimi, yöntem/parametre sözleşmesi ve çift yönlü mesajlaşmayı basitleştirir.
+
+Taşıma bağımsız tasarım, aynı veri yapılarının yerel STDIO ve uzak HTTP/SSE üzerinden taşınabilmesini sağlar. Böylece bir sunucu önce geliştirici makinesinde test edilebilir, sonra asgari değişiklikle buluta taşınabilir. Güvenlik tarafında ise HTTP ekosisteminin olgun kimlik doğrulama ve şifreleme mekanizmaları (OAuth 2.x, API anahtarları, TLS) doğrudan yeniden kullanılır.
+
+Bu mimari tercihlerin sonucu olarak MCP; ölçeklenebilirlik (çoklu sunucu, çoklu araç), birlikte çalışabilirlik (ortak şema), gözlemlenebilirlik (standart günlükleme) ve bakım kolaylığı (sürümleme/şema evrimi) alanlarında somut faydalar üretir.
 
 ## 6. Açık Kaynak ve Güvenlik
-- Artılar: Şeffaflık, topluluk incelemesi ve hızlı iyileştirme; imzalı yayınlar/bütünlük kontrolleri.
-- Eksiler: Tedarik zinciri riskleri (kötü/ele geçirilmiş paketler), fark edilmeden güncellenen zararlı işlevler.
-- Sonuç: Açık kaynak faydalıdır; ancak sürüm kilitleme (pinning), denetim ve tarama şarttır.
+MCP’nin açık kaynak doğası iki yönlüdür. Olumlu tarafta; spesifikasyon ve örnek sunucuların açık olması topluluk denetimini, güvenlik açığı geri bildirimlerini ve hızlı düzeltmeleri mümkün kılar. Popüler bileşenlerde dijital imzalar/bütünlük kontrolleri ve şeffaf sürüm notları güveni artırır.
+
+Öte yandan, tedarik zinciri riski gerçektir: kötü niyetli veya ele geçirilmiş paketler aracılığıyla “araç zehirleme” ya da arka kapı yerleştirme girişimleri görülebilir. Bu nedenle sürüm kilitleme (pinning), imzalı yayınların tercih edilmesi, bağımlılık taraması (SBOM/örn. Syft, Grype) ve değişiklik denetimi (CHANGELOG/PROVENANCE) önerilir. Kurumsal ortamlarda, onaylı sunucu/araç katalogları ve izinli kaynak listeleri (allow‑list) ek bir koruma katmanı sağlar.
 
 ## 7. Tehdit Modeli ve Saldırı Senaryoları
-- Komut enjeksiyonu: Filtrelenmemiş girdilerin kabuk/sistem çağrılarına aktarılması.
-- Prompt enjeksiyonu: LLM’nin manipüle edilerek riskli araçları tetiklemesi.
-- Araç zehirleme: Araç açıklamalarına gizli talimat/zararlı güncelleme.
-- Açıkta kalan sunucular: Kimlik doğrulama/şifreleme olmadan erişime açık MCP sunucuları.
-- Uzak kod yürütme (RCE): Zayıf doğrulama/bağlam izolasyonu ile tetiklenebilen istismarlar.
+Komut, prompt ve araç düzeyinde enjeksiyonlar MCP ekosisteminde sık görülen risklerdir. Aşağıdaki örnekler, tipik saldırı vektörlerini ve etkilerini özetler:
+- Komut enjeksiyonu: Girdi değerlerinin doğrudan kabuk komutlarına aktarılması (ör. `notify-send` başlığına enjekte edilen komut parçaları) sunucu yetkileriyle keyfi çalıştırmaya yol açabilir. Yerel sunucularda bu, kullanıcı hesabının ele geçirilmesine kadar gidebilir.
+- Prompt enjeksiyonu: LLM, zararlı talimatlarla “görevi gizlice genişletmeye” ikna edilerek yetkisiz araç çağrıları yapabilir (ör. istenen işlemin yanında ayrıcalıklı kullanıcı oluşturma). Özellikle otomatik onay akışlarında etki büyüktür.
+- Araç zehirleme: Araç açıklamalarına gizli talimatlar yerleştirilmesi veya sonradan güncellemeyle zararlı davranış eklenmesi; LLM’nin açıklamaya güvenmesi nedeniyle veri sızıntısı/yanlış eylem riskini artırır.
+- Açıkta kalan sunucular: Kimlik doğrulama/şifreleme olmadan yayınlanan sunucular, doğal dil sorgularıyla hassas verileri sızdırabilir; sayıları azımsanmayacak düzeydedir.
+- RCE: Zayıf doğrulama/bağlam izolasyonu, crafted isteklerle uzak kod çalıştırmaya kapı aralayabilir (ör. belirli MCP sunucularındaki CVE’ler).
 
 ## 8. Güvenlik Önlemleri ve İyi Uygulamalar
-- Kimlik doğrulama/Yetkilendirme: OAuth 2.0 erişim belirteçleri, API anahtarları.
-- Taşıma güvenliği: HTTPS/TLS, standart HTTP kimlik doğrulama yöntemleri.
-- Uygulama politikaları: Kullanıcı onayı, en az yetki, eylem sınırlama; sürüm kilitleme ve değişiklik izleme.
-- Sandboxing ve kaynak sınırlamaları; beyaz/siyah liste, rate limiting.
-- Girdi doğrulama ve çıkış sanitizasyonu (ör. Rebuff).
-- Bağımlılık/kod taraması (Semgrep), SBOM ve tedarik zinciri hijyeni (SLSA).
-- Adversary eğitimi ve guard modellerle yüksek etkili eylemlerin denetlenmesi.
-- Just‑in‑time erişim, politika temelli kontrol ve sürekli izleme (OpenTelemetry/SIEM).
+MCP’de güvenlik, taşıma katmanı kontrolleri ile uygulama politikalarının birlikte tasarlanmasıyla sağlanır. Özet başlıkların arkasındaki temel ilkeler:
+- Kimlik doğrulama/Yetkilendirme: OAuth 2.0/2.1 akışları ve kısa ömürlü belirteçler; yetkilerin araç/işlev bazında daraltılması (en az yetki) ve kapsam/kuota sınırları.
+- Taşıma güvenliği: HTTPS/TLS 1.3; HSTS ve güvenli başlıklar; uzak sunucularda karşılıklı TLS (mTLS) tercih edilebilir.
+- Uygulama politikaları: Yüksek etkili eylemlerde kullanıcı onayı (step‑up), korumalı alan (guard model) ve otomasyon kısıtları; sürüm kilitleme ve davranış değişikliği bildirimi.
+- Sandboxing/kaynak kısıtları: Docker/VM izolasyonu, sınırlı dosya sistemi/ağ izinleri; rate limiting ve IP tabanlı sınırlar; uzak erişimde allow‑list.
+- Girdi/çıktı güvenliği: Girdi doğrulama, kaçış ve çıktı sanitizasyonu; prompt korumaları (örn. Rebuff benzeri katmanlar) ve duyarlı veri maskeleme.
+- Tedarik zinciri hijyeni: SBOM (SLSA ile), imzalı yayınlar, Semgrep/Trivy statik tarama; bağımlılık güncellemelerinde onaylı havuz.
+- İzleme ve olay yönetimi: OpenTelemetry ile izleme; SIEM entegrasyonu; tehdit istihbaratı beslemeleri; geri alma/runbook’lar.
 
 ### Risk ve Savunma Tablosu
 
